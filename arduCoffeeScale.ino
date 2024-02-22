@@ -1,7 +1,7 @@
 #include <Adafruit_BME280.h>
 
 #include <HX711.h>
-
+#include "CoffeeScale.h"
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -16,7 +16,9 @@
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+CoffeeScale grinder(relaisPin, scaleSCK, scaleDT);
 HX711 scale;
+
 
 Adafruit_BME280 bme;
 
@@ -26,6 +28,7 @@ void setup() {
   scale.begin(scaleDT, scaleSCK);
   bme.begin(0x76);
   pinMode(relaisPin, OUTPUT);
+  grinder.grind(true);
 
 
 
@@ -63,17 +66,21 @@ float temp = 0;
 void loop() {
   scaleRaw = scale.read();
 
-  temp = bme.readTemperature();
-  Serial.println(temp);
-  if (scaleRaw > limit) digitalWrite(relaisPin, HIGH);
-  else digitalWrite(relaisPin, LOW);
+  // temp = bme.readTemperature();
+  // if (scaleRaw > limit) digitalWrite(relaisPin, HIGH);
+  // else digitalWrite(relaisPin, LOW);
 
   timeDelta = micros() - timeStamp;
   timeStamp = micros();
-  display.clearDisplay();
-  display.setCursor(20, 5);
-  display.println(scaleRaw);
-  display.setCursor(20, 20);
-  display.println(timeDelta);
-  display.display();
+  // display.clearDisplay();
+  // display.setCursor(20, 5);
+  // display.println(scaleRaw);
+  // display.setCursor(20, 20);
+  // display.println(timeDelta);
+  //display.display();
+  Serial.println(timeDelta);
 }
+
+
+
+
