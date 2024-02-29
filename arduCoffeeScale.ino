@@ -2,6 +2,7 @@
 
 #include <HX711.h>
 #include "CoffeeScale.h"
+#include "UX.h"
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -18,7 +19,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 CoffeeScale grinder(relaisPin, scaleSCK, scaleDT);
 HX711 scale;
-
+UX mainUX;
 
 Adafruit_BME280 bme;
 
@@ -29,7 +30,7 @@ void setup() {
   bme.begin(0x76);
   pinMode(relaisPin, OUTPUT);
   grinder.grind(true);
-
+  mainUX.init();
 
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -64,6 +65,8 @@ int timeDelta = 0;
 float temp = 0;
 
 void loop() {
+  mainUX.uxLoop();
+
   scaleRaw = scale.read();
 
   // temp = bme.readTemperature();

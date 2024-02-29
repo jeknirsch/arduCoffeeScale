@@ -17,6 +17,7 @@ private:
   float meanValue(int timeMS, float maxError);  //maxError in unit
 
   HX711 _scale;
+  bool _grind = false;
   bool _debug = false;
   float _unitScale;
   float _loadZero;
