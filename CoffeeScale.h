@@ -2,12 +2,13 @@
 #define COFFEESCALE_H
 
 #include <HX711.h>
+
+#define ringBufferSize 10
 enum scaleState {};
 
 class CoffeeScale {
 public:
-  CoffeeScale(int relaisPin, int scaleSCK, int scaleDT);
-  void initScale();
+  void begin(int relaisPin, int scaleSCK, int scaleDT);
   void grind(bool ON);
   float readUnit();
   void tareZero();
@@ -21,6 +22,18 @@ private:
   bool _debug = false;
   float _unitScale;
   float _loadZero;
+};
+
+class Ringbuffer {
+public:
+  Ringbuffer();
+  void add(float value);
+  float get(int index);
+  float mean(int range);
+private:
+  float *_ringBuffer;
+  const int _ringSize = ringBufferSize;
+  int _ringIndex = 0; //inicating the next spot to write new data
 };
 
 
