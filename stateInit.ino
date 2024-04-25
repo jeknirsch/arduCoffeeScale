@@ -1,44 +1,47 @@
 UxFunction state_main;
 UxFunction state_tare;
+float time_ms = 0;
 
-void stateMain() { 
+void stateMain() {
   float unitsVal = grinder.readUnit();
-  Serial.println(unitsVal);
-  // display.clearDisplay();
-  // display.setTextSize(3);
-  // display.setCursor(20, 5);
-  // String msg = String(unitsVal, 3);
-  // msg += "g";
-  // display.println(msg);
-  // display.display();
+
+  Serial.println(String(unitsVal) + ", " + String(millis() - time_ms));
+  display.clearDisplay();
+  display.setTextSize(3);
+  display.setCursor(0, 5);
+  String msg = String(unitsVal, 3);
+  display.println(msg);
+  display.display();
 
   String buttonStateMsg = "";
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 4; i++) {
     if (buttons.getState(i)) buttonStateMsg += "X ";
     else buttonStateMsg += "0 ";
   }
 
-  if (buttons.getState(2)){
+  if (buttons.getState(2)) {
     Serial.println("set 50");
     grinder.setUnitScale(50);
   }
 
-  // if (buttons.getState(3)){
-  //   Serial.println("tare 0");
-  //   grinder.tareZero();
-  // }
+  if (buttons.getState(1)) {
+    Serial.println("tare 0");
+    grinder.tareZero();
+  }
 
-  display.clearDisplay();
-  display.setTextSize(3);
-  display.setCursor(0, 2);
-  display.println(buttonStateMsg);
-  display.display();
+  if (buttons.getState(0)) {
+    Serial.println("set time 0");
+    time_ms = millis();
+  }
 
+  // display.clearDisplay();
+  // display.setTextSize(3);
+  // display.setCursor(0, 2);
+  // display.println(buttonStateMsg);
+  // display.display();
 }
 
 void stateTare() {
-
-  
 }
 
 
