@@ -4,8 +4,8 @@
 #include <HX711.h>
 
 #define ringBufferSize 10
-enum scaleState {};
 
+//###################### CoffeScale main Class ######################
 class CoffeeScale {
 public:
   void begin(int relaisPin, int scaleSCK, int scaleDT);
@@ -24,17 +24,26 @@ private:
   float _loadZero;
 };
 
+
+//###################### Ringbuffer Class ######################
 class Ringbuffer {
 public:
-  Ringbuffer();
   void add(float value);
   float get(int index);
   float mean(int range);
+  int getSize();
 private:
-  float *_ringBuffer;
-  const int _ringSize = ringBufferSize;
-  int _ringIndex = 0; //inicating the next spot to write new data
+  float _ringBuffer[ringBufferSize];    //allocate space for array
+  const int _ringSize = ringBufferSize; //save ringSize as readonly
+  int _ringIndex = 0;                   //inicating the next spot to write new data
 };
 
+
+//###################### EEPROM Class ######################
+
+
+class EEPROMHandler {
+  //TO-DO
+}
 
 #endif

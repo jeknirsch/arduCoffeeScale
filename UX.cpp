@@ -1,3 +1,4 @@
+#include <iterator>
 #include "UX.h"
 #include <Arduino.h>
 
@@ -23,32 +24,52 @@ void UX::uxLoop() {
 ButtonManager::ButtonManager(int pin0, int pin1, int pin2, int pin3)
   : _pin0(pin0), _pin1(pin1), _pin2(pin2), _pin3(pin3) {}
 
-void ButtonManager::begin(){
+void ButtonManager::begin() {
   pinMode(_pin0, INPUT);
   pinMode(_pin1, INPUT);
   pinMode(_pin2, INPUT);
   pinMode(_pin3, INPUT);
 }
 
-void ButtonManager::buttonLoop(){
+void ButtonManager::buttonLoop() {
   static int timeStamp = millis();
-  if (millis() - timeStamp > _debounceTimeMS){
+  if (millis() - timeStamp > _debounceTimeMS) {
     //maybe cnovert to loop? pin array!
     buttonState[0] = digitalRead(_pin0);
-    if (analogRead(_pin1) < 512) buttonState[1] = false; //since pin1 is connected to A0 it has to be handled separately
+    if (analogRead(_pin1) < 512) buttonState[1] = false;  //since pin1 is connected to A0 it has to be handled separately
     else buttonState[1] = true;
     buttonState[2] = digitalRead(_pin2);
     buttonState[3] = digitalRead(_pin3);
   }
 }
 
-bool ButtonManager::getState(int button){ //returns false if index is out of bounds
+bool ButtonManager::getState(int button) {  //returns false if index is out of bounds
   bool state = false;
-  if (button >= 0 || button < ButtonNum) state = buttonState[button]; 
+  if (button >= 0 || button < ButtonNum) state = buttonState[button];
   return state;
 }
 
-void ButtonManager::setDebounceTime(int timeMS){
+void ButtonManager::setDebounceTime(int timeMS) {
   _debounceTimeMS = timeMS;
 }
 
+//###################### UI components ######################
+
+UI_Number::UI_Number(int x, int y, int fontSize) {}
+void UI_Number::setNumber(float number,bool isFloat) {}
+void UI_Number::setUnit(String unit) {}
+void UI_Number::draw() {}
+
+
+UI_Graph::UI_Graph(int x, int y, int width, int height) {}
+void UI_Graph::setGraphResolution(int dataPoints){
+  _dataPoints = dataPoints;
+}
+
+void UI_Graph::setDataBuffer(Ringbuffer *buffer) {
+  _dataBuffer = buffer;
+}
+
+void UI_Graph::draw() {
+  
+}

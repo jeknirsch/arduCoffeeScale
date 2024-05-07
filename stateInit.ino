@@ -2,7 +2,17 @@ UxFunction state_main;
 UxFunction state_tare;
 float time_ms = 0;
 
+struct UI_Layout {
+  UI_Number mainNumber;
+
+  UI_Layout() : mainNumber(0, 0, 3) {}; //Initialize elements in struct constructor
+};
+
+UI_Layout ui; //Create global ui handler
+
 void stateMain() {
+
+
   float unitsVal = grinder.readUnit();
 
   Serial.println(String(unitsVal) + ", " + String(millis() - time_ms));
@@ -46,6 +56,8 @@ void stateTare() {
 
 
 void initUxStates() {
+  //init struct
+
   //init start state
   mainUX.init(&state_main);
 
