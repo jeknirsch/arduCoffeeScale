@@ -57,6 +57,11 @@ void setup() {
 
   grinder.tareZero();
 
+  int timeStamp = millis();
+  printState();
+  timeStamp = millis() - timeStamp;
+  Serial.println("Print time: " + String(timeStamp));
+
   delay(2000);
   display.clearDisplay();
   display.display();

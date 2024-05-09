@@ -10,16 +10,19 @@ class CoffeeScale {
 public:
   void begin(int relaisPin, int scaleSCK, int scaleDT);
   void grind(bool ON);
+  bool isGrinding();
   float readUnit();
   void tareZero();
   void setUnitScale(float calibrationWeight = 50.0);
-  void debug(bool ON);
+  String getParams();
 private:
   float meanValue(int timeMS, float maxError);  //maxError in unit
 
   HX711 _scale;
-  bool _grind = false;
-  bool _debug = false;
+  int _readTime;
+  float _currVal;
+  int _relaisPin;
+  bool _isGrinding = false;
   float _unitScale;
   float _loadZero;
 };
@@ -44,6 +47,6 @@ private:
 
 class EEPROMHandler {
   //TO-DO
-}
+};
 
 #endif

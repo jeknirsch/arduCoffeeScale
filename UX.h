@@ -2,6 +2,7 @@
 #define UX_H
 
 #include "CoffeeScale.h"
+#include <Adafruit_SSD1306.h>
 
 #define ButtonNum 4
 
@@ -25,6 +26,7 @@ private:
   UxFunction *_currentUxLoop = nullptr;
 };
 //###################### ButtonManager class ######################
+//TO DO: Flank detection
 class ButtonManager {  //button class for 4 Buttons
 public:
   ButtonManager(int pin0, int pin1, int pin2, int pin3);
@@ -43,33 +45,34 @@ private:
 
 //###################### UI components ######################
 class UI_Element {
-  virtual void draw() = 0; //Virtual function to draw a Frame
+public:
+  UI_Element(Adafruit_SSD1306 *display);
+protected:
+   Adafruit_SSD1306 *_display;
 };
 
 class UI_Number : public UI_Element {
 public:
-  UI_Number(int x, int y, int fontSize);
-  void setNumber(float number, bool isFloat = true);
-  void setUnit(String unit);
-  void draw() override;
+  UI_Number(int x, int y, int fontSize, Adafruit_SSD1306 *display);
+  void drawNumber(float number, bool isFloat = true);
+  void setSuffix(String suffix);
 private:
   bool _float = true;  //int vs float
   int _x, _y;
   int _fontSize = 1;
   float _number;
   int _preDecimal, _postDecimal;  //handle numbers pre and post decimal poin separately to dispaly a fixed deciaml point
-  String _unit;
+  String _suffix;
 };
 
 class UI_Graph : public UI_Element {
 public:
-  UI_Graph(int x, int y, int width, int height);
+  UI_Graph(int x, int y, int width, int height, Adafruit_SSD1306 *display);
   void setGraphResolution(int dataPoints);  //number of dataPoints displayed on the graph -> max datapoints = max width (px)
   void setDataBuffer(Ringbuffer *buffer);
-  void draw() override;
 private:
   int _x, _y, _width, _height;
-  int _dataPoints = _width; //default = width
+  int _dataPoints = _width;  //default = width
   Ringbuffer *_dataBuffer = nullptr;
 };
 

@@ -17,7 +17,7 @@ void UX::init(UxFunction *initUxState) {
 void UX::uxLoop() {
 
   if (_currentUxLoop != nullptr) _currentUxLoop->stateFunction();  //run selected state function
-  //to do error display msg
+  //to do error display msg -  nie zu sehen bekommt
 }
 
 //###################### ButtonManager ######################
@@ -54,15 +54,26 @@ void ButtonManager::setDebounceTime(int timeMS) {
 }
 
 //###################### UI components ######################
-
-UI_Number::UI_Number(int x, int y, int fontSize) {}
-void UI_Number::setNumber(float number,bool isFloat) {}
-void UI_Number::setUnit(String unit) {}
-void UI_Number::draw() {}
+UI_Element::UI_Element(Adafruit_SSD1306 *display)
+  : _display(display) {}
 
 
-UI_Graph::UI_Graph(int x, int y, int width, int height) {}
-void UI_Graph::setGraphResolution(int dataPoints){
+UI_Number::UI_Number(int x, int y, int fontSize, Adafruit_SSD1306 *display)
+  : _x(x), _y(y), _fontSize(fontSize), UI_Element(display) {}
+void UI_Number::drawNumber(float number, bool isFloat) {
+  _number = number;
+  _display->setCursor(_x, _y);
+  _display->setTextSize(_fontSize);
+  _display->println(String(_number) + _suffix);
+}
+void UI_Number::setSuffix(String suffix) {
+  _suffix = suffix;
+}
+
+
+UI_Graph::UI_Graph(int x, int y, int width, int height, Adafruit_SSD1306 *display)
+  : UI_Element(display) {}
+void UI_Graph::setGraphResolution(int dataPoints) {
   _dataPoints = dataPoints;
 }
 
@@ -70,6 +81,3 @@ void UI_Graph::setDataBuffer(Ringbuffer *buffer) {
   _dataBuffer = buffer;
 }
 
-void UI_Graph::draw() {
-  
-}
