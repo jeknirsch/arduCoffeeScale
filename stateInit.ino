@@ -49,7 +49,7 @@ void stateMain() {
   //   else buttonStateMsg += "0 ";
   // }
 
-  if (buttons.getState(0)) {
+  if (buttons.getState(0) && !grinder.isGrinding()) {
     grinder.tareZero();
     grinder.grind(true);
     grindTimeStamp = millis();

@@ -36,10 +36,12 @@ void ButtonManager::buttonLoop() {
   if (millis() - timeStamp > _debounceTimeMS) {
     //maybe cnovert to loop? pin array!
     buttonState[0] = digitalRead(_pin0);
+    // Serial.println(digitalRead(_pin0));
     if (analogRead(_pin1) < 512) buttonState[1] = false;  //since pin1 is connected to A0 it has to be handled separately
     else buttonState[1] = true;
     buttonState[2] = digitalRead(_pin2);
     buttonState[3] = digitalRead(_pin3);
+    timeStamp = millis();
   }
 }
 
