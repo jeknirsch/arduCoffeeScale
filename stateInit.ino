@@ -1,5 +1,3 @@
-UxFunction state_main;
-UxFunction state_tare;
 float targetWeight = 16.0;
 int grindTimeStamp = 0;
 
@@ -13,11 +11,10 @@ UI_Layout ui;  //Create global ui handler
 
 void stateMain() {
   //TO DO: automatic init function with statechange
-  static int init = true;
-  if (init) {
-
-    init = false;
+  if (mainUX.initLoop()){
+    // do init stuff every time loop is freshly called
   }
+
 
   float unitsVal = grinder.readUnit();
   display.clearDisplay();
@@ -67,6 +64,7 @@ void stateMain() {
 }
 
 void stateTare() {
+  if (buttons.getState(0)) mainUX.changeLoop(&stateMain); //Example: change to new loop function
 }
 
 void printState() {
@@ -75,12 +73,8 @@ void printState() {
 
 
 void initUxStates() {
-  //init struct
+  //init start loop
+  mainUX.init(&stateMain);
 
-  //init start state
-  mainUX.init(&state_main);
-
-  state_main.stateFunction = &stateMain;
-  state_main.nextFunction = &state_main;
   Serial.println("State functions assigned");
 }

@@ -7,17 +7,17 @@
 #include <Adafruit_SSD1306.h>
 
 //pin defines
-#define relaisPin 5  //D1
-#define scaleSCK 15  //D8
-#define scaleDT 13   //D7
+#define RELAISPIN 5  //D1
+#define SCALE_SCK 15  //D8
+#define SCALE_DT 13   //D7
 
-#define i2cSCL 12  //D6
-#define i2cSDA 14  //D5
+#define I2C_SCL 12  //D6
+#define I2C_SDA 14  //D5
 
-#define button4 16  //D0
-#define button3 4   //D2
-#define button2 A0  //D3
-#define button1 2   //D4
+#define BUTTON4 16  //D0
+#define BUTTON3 4   //D2
+#define BUTTON2 A0  //D3
+#define BUTTON1 2   //D4
 
 //display specs
 #define SCREEN_WIDTH 128
@@ -29,16 +29,16 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 CoffeeScale grinder;
 UX mainUX;
-ButtonManager buttons(button1, button2, button3, button4);
+ButtonManager buttons(BUTTON1, BUTTON2, BUTTON3, BUTTON4);
 //Ringbuffer buffer;
 
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Start");
-  Wire.begin(i2cSDA, i2cSCL);  //sda, scl -> D5, D6
-  grinder.begin(relaisPin, scaleSCK, scaleDT);
-  pinMode(relaisPin, OUTPUT);
+  Wire.begin(I2C_SDA, I2C_SCL);  //sda, scl -> D5, D6
+  grinder.begin(RELAISPIN, SCALE_SCK, SCALE_DT);
+  pinMode(RELAISPIN, OUTPUT);
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));

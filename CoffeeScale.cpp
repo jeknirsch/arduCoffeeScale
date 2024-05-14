@@ -60,13 +60,6 @@ float Ringbuffer::get(int index = -1) {
     //convert relative ring index to absolut arraya index
     absolutIndex = (_ringIndex + index) % (_ringSize - 1);
   }
-
-  //DEPRECATED
-  //check if index is out of bounds, if so return last written index
-  // if (index < 0 || index >= _ringSize){
-  //   if (_ringIndex == 0) index = _ringSize-1;
-  //   else index = _ringIndex - 1; //_ringIndex is pointing to next free index -> return index before next data point
-  // }
   return _ringBuffer[absolutIndex];
 }
 
