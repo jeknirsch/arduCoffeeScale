@@ -9,13 +9,20 @@
 //define function typedef for standard function pointer for easier readability
 typedef void (*FunctionPointer)(void);
 
-class ButtonManager;
-//Deprecated
-// struct UxFunction {
-//   FunctionPointer stateFunction = nullptr;  //pointer to the loop function
-//   UxFunction *nextFunction = nullptr;       //pointer to the next loop function -> change to different UxFunction struct
-// };
+//Flank and state enum
+enum ButtonStates {
+  FLANK_UP = 2,
+  FLANK_DOWN = 3
+};
 
+//stateStruct
+struct ButtonMap{
+  FunctionPointer stateFunction;
+  int map[4];
+};
+
+//Class prototype
+class ButtonManager;
 
 ////###################### Ux class ######################
 class UX {
@@ -43,6 +50,7 @@ public:
   void buttonLoop();
   unsigned int buttonPressTime(int buttonNr);
   int getState(int buttonNr);
+  bool applyButtonPress(UX *buttonUX, ButtonMap *buttonMap, int length);
 
 private:
   int _pin0, _pin1, _pin2, _pin3;

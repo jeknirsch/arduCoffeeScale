@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include <iterator>
 #include "UX.h"
@@ -10,13 +11,13 @@ void UX::init(FunctionPointer initLoop) {
   _initLoop = true;
 }
 
-void UX::changeLoop(FunctionPointer nextLoop){
+void UX::changeLoop(FunctionPointer nextLoop) {
   if (nextLoop != nullptr) _currentUxLoop = nextLoop;
   _initLoop = true;
 }
 
 //WARNING: if not called _initLoop will not reset but shouldnt make any problems
-bool UX::initLoop(){
+bool UX::initLoop() {
   bool tempInit = _initLoop;
   _initLoop = false;
   return tempInit;
@@ -52,45 +53,72 @@ void ButtonManager::buttonLoop() {
     if (analogRead(_pin1) < 512) _buttonState[1] = false;  //since pin1 is connected to A0 it has to be handled separately
     else _buttonState[1] = true;
     _buttonState[2] = digitalRead(_pin2);
-    _buttonState[3] = digitalRead(_pin3);
+    _buttonState[3] = 0;//digitalRead(_pin3); Temporary disabled wegen glitch fuck
     timeStamp = millis();
   }
 
   //handle button pressTime
-  for (int i = 0; i < BUTTON_NUMBER; i++){
+  for (int i = 0; i < BUTTON_NUMBER; i++) {
     //MAYBE: 1) a button timeout 2) reset logic save last or 0?
-    if (getState(i) == 2) _buttonPressedMS[i] = millis(); //save current time if rising flank
-    else if (getState(i) == 3) _buttonPressedMS[i] = 0; //reset if falling
+    if (getState(i) == 2) _buttonPressedMS[i] = millis();  //save current time if rising flank
+    else if (getState(i) == 3) _buttonPressedMS[i] = 0;    //reset if falling
   }
 }
 
-unsigned int ButtonManager::buttonPressTime(int buttonNr){
+unsigned int ButtonManager::buttonPressTime(int buttonNr) {
   //check for out of bounds return 0 if out of bounds
   unsigned long int tempTime = 0;
-  if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) tempTime = millis() - _buttonPressedMS[buttonNr]; //calculate time since pressed
+  if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) tempTime = millis() - _buttonPressedMS[buttonNr];  //calculate time since pressed
   return tempTime;
 }
 
 int ButtonManager::getState(int buttonNr) {  //returns -1  if index is out of bounds
-  int state = - 1;
+  int state = -1;
   //check if index out of bounds
-  if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)){
+  if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) {
     //check for flank/state
-    if (_lastButtonState[buttonNr] != _buttonState[buttonNr]){ //flank detected
+    if (_lastButtonState[buttonNr] != _buttonState[buttonNr]) {  //flank detected
       state = _lastButtonState[buttonNr] - _buttonState[buttonNr];
       //check for rising/falling flank
       //rising:   last(0) - current(1) < 0 --> return 2
       //falling:  last(1) - current(0) > 0 --> return 3
       if (state > 0) state = 3;
       else state = 2;
-    }else{
+    } else {
       //no flank detected return current button state
       state = _buttonState[buttonNr];
     }
   }
-  
+
   return state;
 }
+
+
+
+bool ButtonManager::applyButtonPress(UX *buttonUX, ButtonMap *buttonMap, int length) {
+
+  bool isMatch = false;
+  bool anyMatch = false;
+  int i = 0;
+  //TO DO: make more efficient
+  //iterate through buttonMap array and try to find matching button combo
+  while ((!isMatch) && (i < length)) {
+    isMatch = true;
+    for (int j = 0; j < 4; j++) {
+      // isMatch = isMatch && ((buttonMap[i].map[j] < 0) || (buttonMap[i].map[j] == getState(j)));
+      //anyMatch: matches if any -2 are pressed 
+      anyMatch = anyMatch || (buttonMap[i].map[j] == -2 && getState(j) >= 1);
+      //isMatch: matches if pattern matches exactly ignore -1
+      isMatch = (isMatch && ( (buttonMap[i].map[j] == -1 || buttonMap[i].map[j] == getState(j))) || anyMatch);
+      // Serial.println("ButtonMap [" + String(i) + "].map[" + String(j) + "] = " + String(buttonMap[i].map[j]) + " | getState = " + String(getState(j)));
+    }
+    if (isMatch) buttonUX->changeLoop(buttonMap[i].stateFunction);
+    i++;
+  }
+
+  return isMatch;
+}
+
 
 //###################### UI components ######################
 UI_Element::UI_Element(Adafruit_SSD1306 *display)
@@ -119,4 +147,3 @@ void UI_Graph::setGraphResolution(int dataPoints) {
 void UI_Graph::setDataBuffer(Ringbuffer *buffer) {
   _dataBuffer = buffer;
 }
-

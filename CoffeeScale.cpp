@@ -9,10 +9,11 @@ void CoffeeScale::grind(bool ON) {
   if (ON) {
     digitalWrite(_relaisPin, HIGH);
     _isGrinding = true;
+    Serial.println("-------------------- GRINDING");
   } else {
     digitalWrite(_relaisPin, LOW);
-    _isGrinding = false;
   }
+  
 }
 
 bool CoffeeScale::isGrinding() {
@@ -36,7 +37,7 @@ void CoffeeScale::setUnitScale(float calibrationWeight) {
 String CoffeeScale::getParams() {
   float scale = _scale.get_scale();
   float offset = _scale.get_offset();
-  return "g: " + String(_currVal) + ", t: " + String(_readTime) +  ", scale: " + String(scale) + ", offset: " + String(offset);
+  return "g: " + String(_currVal) + ", t: " + String(_readTime) + ", scale: " + String(scale) + ", offset: " + String(offset);
 }
 
 float CoffeeScale::meanValue(int timeMS, float maxError) {

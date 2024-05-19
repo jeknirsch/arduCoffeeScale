@@ -7,7 +7,7 @@
 #include <Adafruit_SSD1306.h>
 
 //pin defines
-#define RELAISPIN 5  //D1
+#define RELAISPIN 5   //D1
 #define SCALE_SCK 15  //D8
 #define SCALE_DT 13   //D7
 
@@ -85,4 +85,11 @@ void setup() {
 void loop() {
   mainUX.uxLoop();
   buttons.buttonLoop();
+
+  //display refresh
+  static int timestamp = millis();
+  if (millis() - timestamp > 100) {
+    display.display();
+    timestamp = millis();
+  }
 }
