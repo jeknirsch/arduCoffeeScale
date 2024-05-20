@@ -12,11 +12,14 @@ typedef void (*FunctionPointer)(void);
 //Flank and state enum
 enum ButtonStates {
   FLANK_UP = 2,
-  FLANK_DOWN = 3
+  FLANK_DOWN = 3,
+  CLICK = 4,
+  HOLD_CLICK = 5,
+  HOLD = 6
 };
 
 //stateStruct
-struct ButtonMap{
+struct ButtonMap {
   FunctionPointer stateFunction;
   int map[4];
 };
@@ -27,14 +30,20 @@ class ButtonManager;
 ////###################### Ux class ######################
 class UX {
 public:
-  void init(FunctionPointer nextLoop);
-  void changeLoop(FunctionPointer nextLoop);
-  bool initLoop();
+  void init(FunctionPointer nextState);
+  void changeState(FunctionPointer nextState);
+  bool initState();
   void uxLoop();
+  void setHomeState(FunctionPointer homeState);
+  FunctionPointer getHomeState();
+  void setStateName(String stateName = "");
+  String getStateName();
 private:
   //TO DO: Move buttonManger in UX class for ez use
-  bool _initLoop = false;
-  FunctionPointer _currentUxLoop = nullptr;
+  String _stateName;
+  bool _initState = false;
+  FunctionPointer _currentUxState = nullptr;
+  FunctionPointer _homeState = nullptr;
 };
 //###################### ButtonManager class ######################
 //logic for flank detection getState returns int
@@ -54,10 +63,11 @@ public:
 
 private:
   int _pin0, _pin1, _pin2, _pin3;
-  const int _debounceTimeMS = 50;                   //debounce time -> button signal refreshrate
-  bool _buttonState[BUTTON_NUMBER] = { false };     //true = button pressed, false = button not pressed
+  const int _debounceTimeMS = 50;  //debounce time -> button signal refreshrate
+  int _buttonMode[BUTTON_NUMBER] = { 0 }; //
+  bool _buttonState[BUTTON_NUMBER] = { false };  //true = button pressed, false = button not pressed
   bool _lastButtonState[BUTTON_NUMBER] = { false };
-  unsigned long int _buttonPressedMS[BUTTON_NUMBER] = { 0 }; //saves the timestamp a button is pressed -1 if button is released
+  unsigned long int _buttonPressedMS[BUTTON_NUMBER] = { 0 };  //saves the timestamp a button is pressed -1 if button is released
 };
 
 

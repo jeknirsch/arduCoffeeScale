@@ -1,32 +1,46 @@
-#include <algorithm>
-#include <cstring>
-#include <iterator>
 #include "UX.h"
 #include <Arduino.h>
+#define HOLD_MIN 700
 
 
-void UX::init(FunctionPointer initLoop) {
+void UX::init(FunctionPointer initState) {
   //initialize first stat
-  _currentUxLoop = initLoop;  //To do use Function pointer
-  _initLoop = true;
+  _currentUxState = initState;  //To do use Function pointer
+  _initState = true;
 }
 
-void UX::changeLoop(FunctionPointer nextLoop) {
-  if (nextLoop != nullptr) _currentUxLoop = nextLoop;
-  _initLoop = true;
+void UX::changeState(FunctionPointer nextState) {
+  if (nextState != nullptr) _currentUxState = nextState;
+  _initState = true;
 }
 
-//WARNING: if not called _initLoop will not reset but shouldnt make any problems
-bool UX::initLoop() {
-  bool tempInit = _initLoop;
-  _initLoop = false;
+//WARNING: if not called _initState will not reset but shouldnt make any problems
+bool UX::initState() {
+  bool tempInit = _initState;
+  _initState = false;
   return tempInit;
 }
 
 void UX::uxLoop() {
 
-  if (_currentUxLoop != nullptr) _currentUxLoop();  //run selected state function
+  if (_currentUxState != nullptr) _currentUxState();  //run selected state function
   //to do error display msg
+}
+
+void UX::setHomeState(FunctionPointer homeState) {
+  _homeState = homeState;
+}
+
+FunctionPointer UX::getHomeState() {
+  return _homeState;
+}
+
+void UX::setStateName(String stateName) {
+  _stateName = stateName;
+}
+
+String UX::getStateName() {
+  return _stateName;
 }
 
 //###################### ButtonManager ######################
@@ -42,33 +56,48 @@ void ButtonManager::begin() {
 }
 
 void ButtonManager::buttonLoop() {
-  static int timeStamp = millis();
+  static unsigned long int timeStamp = millis();
 
-  //copy array _buttonstate to _lastButtonState
-  std::memcpy(_lastButtonState, _buttonState, BUTTON_NUMBER * sizeof(int));
 
   //read new buttonstates
   if (millis() - timeStamp > _debounceTimeMS) {
     _buttonState[0] = digitalRead(_pin0);
-    if (analogRead(_pin1) < 512) _buttonState[1] = false;  //since pin1 is connected to A0 it has to be handled separately
-    else _buttonState[1] = true;
+    _buttonState[1] = digitalRead(_pin1);
     _buttonState[2] = digitalRead(_pin2);
-    _buttonState[3] = 0;//digitalRead(_pin3); Temporary disabled wegen glitch fuck
+    _buttonState[3] = digitalRead(_pin3);
     timeStamp = millis();
   }
 
-  //handle button pressTime
   for (int i = 0; i < BUTTON_NUMBER; i++) {
-    //MAYBE: 1) a button timeout 2) reset logic save last or 0?
+    //handle button pressTime
     if (getState(i) == 2) _buttonPressedMS[i] = millis();  //save current time if rising flank
     else if (getState(i) == 3) _buttonPressedMS[i] = 0;    //reset if falling
+
+    //check for rising/falling flank
+    //not pressed   --> 0
+    //pressed       --> 1
+    //rising flank  --> 2
+    //falling flank --> 3
+    if (_lastButtonState[i] != _buttonState[i]) {  //flank detected
+      //rising:   last(0) - current(1) < 0 --> return 2
+      //falling:  last(1) - current(0) > 0 --> return 3
+      _buttonMode[i] = _lastButtonState[i] - _buttonState[i];
+      if (_buttonMode[i] > 0) _buttonMode[i] = 3;
+      else _buttonMode[i] = 2;
+    } else {
+      //no flank detected return current button state
+      _buttonMode[i] = _buttonState[i];
+    }
+
+    //update _lastButtonState
+    _lastButtonState[i] = _buttonState[i];
   }
 }
 
 unsigned int ButtonManager::buttonPressTime(int buttonNr) {
   //check for out of bounds return 0 if out of bounds
   unsigned long int tempTime = 0;
-  if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) tempTime = millis() - _buttonPressedMS[buttonNr];  //calculate time since pressed
+  if (_buttonPressedMS[buttonNr] > 0 && !(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) tempTime = millis() - _buttonPressedMS[buttonNr];  //calculate time since pressed
   return tempTime;
 }
 
@@ -76,18 +105,7 @@ int ButtonManager::getState(int buttonNr) {  //returns -1  if index is out of bo
   int state = -1;
   //check if index out of bounds
   if (!(buttonNr < 0 || buttonNr >= BUTTON_NUMBER)) {
-    //check for flank/state
-    if (_lastButtonState[buttonNr] != _buttonState[buttonNr]) {  //flank detected
-      state = _lastButtonState[buttonNr] - _buttonState[buttonNr];
-      //check for rising/falling flank
-      //rising:   last(0) - current(1) < 0 --> return 2
-      //falling:  last(1) - current(0) > 0 --> return 3
-      if (state > 0) state = 3;
-      else state = 2;
-    } else {
-      //no flank detected return current button state
-      state = _buttonState[buttonNr];
-    }
+    state = _buttonMode[buttonNr];
   }
 
   return state;
@@ -98,21 +116,33 @@ int ButtonManager::getState(int buttonNr) {  //returns -1  if index is out of bo
 bool ButtonManager::applyButtonPress(UX *buttonUX, ButtonMap *buttonMap, int length) {
 
   bool isMatch = false;
-  bool anyMatch = false;
+  // bool anyMatch = false;
   int i = 0;
   //TO DO: make more efficient
   //iterate through buttonMap array and try to find matching button combo
   while ((!isMatch) && (i < length)) {
-    isMatch = true;
+
     for (int j = 0; j < 4; j++) {
       // isMatch = isMatch && ((buttonMap[i].map[j] < 0) || (buttonMap[i].map[j] == getState(j)));
-      //anyMatch: matches if any -2 are pressed 
-      anyMatch = anyMatch || (buttonMap[i].map[j] == -2 && getState(j) >= 1);
-      //isMatch: matches if pattern matches exactly ignore -1
-      isMatch = (isMatch && ( (buttonMap[i].map[j] == -1 || buttonMap[i].map[j] == getState(j))) || anyMatch);
+      //anyMatch: matches if any -2 are pressed
+      //   anyMatch = anyMatch || (buttonMap[i].map[j] == -2 && getState(j) >= 1);
+      //   //isMatch: matches if pattern matches exactly ignore -1
+      //   isMatch = (isMatch && ((buttonMap[i].map[j] == -1 || buttonMap[i].map[j] == getState(j))) || anyMatch);
+      //   // Serial.println("ButtonMap [" + String(i) + "].map[" + String(j) + "] = " + String(buttonMap[i].map[j]) + " | getState = " + String(getState(j)));
+      // }
+
+
       // Serial.println("ButtonMap [" + String(i) + "].map[" + String(j) + "] = " + String(buttonMap[i].map[j]) + " | getState = " + String(getState(j)));
+
+      unsigned int pressTime = buttonPressTime(j);
+      isMatch = isMatch || ((buttonMap[i].map[j] == CLICK && getState(j) == FLANK_DOWN && pressTime < HOLD_MIN));
+      isMatch = isMatch || ((buttonMap[i].map[j] == HOLD_CLICK && getState(j) == FLANK_DOWN && pressTime >= HOLD_MIN));
+      if (pressTime >= HOLD_MIN) {
+        isMatch = isMatch || (buttonMap[i].map[j] == HOLD && getState(j) == 1);
+      }
     }
-    if (isMatch) buttonUX->changeLoop(buttonMap[i].stateFunction);
+
+    if (isMatch) buttonUX->changeState(buttonMap[i].stateFunction);
     i++;
   }
 

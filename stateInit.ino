@@ -3,6 +3,7 @@ void stateMain();
 void stateCalibrate();
 void stateFinishGrind();
 
+
 float targetWeight = 16.0;
 int grindTimeStamp = 0;
 
@@ -16,16 +17,20 @@ UI_Layout ui;  //Create global ui handler
 
 void stateMain() {
   //------------- init -------------
-  const int mapCombos = 2;
+  const int mapCombos = 3;
   static ButtonMap stateMain_map[mapCombos];
-  if (mainUX.initLoop()) {
-    // do init stuff every time loop is freshly called
-    stateMain_map[0] = { &stateStartGrind, { 0, 0, FLANK_UP, 0 } };
-    stateMain_map[1] = { &stateCalibrate, { 0, FLANK_DOWN, 0, 0 } };
+  if (mainUX.initState()) {
+    mainUX.setStateName("Main");
+    stateMain_map[0] = { &stateStartGrind, { 0, 0, HOLD, 0 } };
+    stateMain_map[1] = { &stateCalibrate, { 0, CLICK, 0, 0 } };
+    stateMain_map[2] = { &stateAutoGrind, { 0, 0, CLICK, 0 } };
+
+    mainUX.setHomeState(&stateMain);
 
     display.clearDisplay();
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
-  buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
 
   //------------- init end -------------
 
@@ -33,138 +38,120 @@ void stateMain() {
   display.clearDisplay();
   ui.mainNumber.setSuffix("g");
   ui.mainNumber.drawNumber(unitsVal);
+}
 
+void stateAutoGrind() {
+  static int timeStamp;
+  int timeout = 60000;
+  //------------- loop init -------------
+  const int mapCombos = 1;
+  static ButtonMap stateMain_map[mapCombos];
+  if (mainUX.initState()) {
+    mainUX.setStateName("Autogrind");
+    timeStamp = millis();
+    stateMain_map[0] = { &stateFinishGrind, { CLICK, CLICK, CLICK, CLICK } };
+    grinder.grind(true);
+    display.clearDisplay();
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
+  }
+  //------------- loop init end -------------
 
-  // for (int i = 0; i < 4; i++){
-  //   Serial.println("Button " + String(i) + ": " + String(buttons.getState(i)));
-  // }
-  // ------------------------------------ Loop ------------------------------------
+  float unitsVal = grinder.readUnit();
 
-  // printParams();
-
-  // int grindDuration = 60000;  //timeout
-  // if (grinder.isGrinding() && millis() - grindTimeStamp > grindDuration) {
-  //   grinder.grind(false);
-  // }
-
-  // if (grinder.isGrinding() && unitsVal >= targetWeight) {
-  //   grinder.grind(false);
-  // }
-  // ----------------------------------- Loop End -----------------------------------
-
-  // String buttonStateMsg = "";
-  // for (int i = 0; i < 4; i++) {
-  //   if (buttons.getState(i)) buttonStateMsg += "X ";
-  //   else buttonStateMsg += "0 ";
-  // }
-
-  // if ((buttons.getState(0) == 1) && !grinder.isGrinding()) {
-  //   grinder.tareZero();
-  //   grinder.grind(true);
-  //   grindTimeStamp = millis();
-  // }
-
-  // if (buttons.getState(2) == 3) {  //Change to calibrate page
-  //   // Serial.println("set 50");
-  //   // grinder.setUnitScale(50);
-  //   Serial.println("Change to calibrate page");
-  //   mainUX.changeLoop(&stateCalibrate);
-  // }
-
-  // if (buttons.getState(1) == 1) {
-  //   //Serial.println("tare 0");
-  //   grinder.tareZero();
-  // }
-
-
-  Serial.println("State: mainState");
+  if (millis() - timeStamp >= timeout) mainUX.changeState(&stateFinishGrind);
+  if (unitsVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
 }
 
 void stateStartGrind() {
   //------------- init -------------
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
-  if (mainUX.initLoop()) {
-    // do init stuff every time loop is freshly called
-    stateMain_map[0] = { &stateFinishGrind, { -1, -1, 0, -1 } };
+  if (mainUX.initState()) {
+    mainUX.setStateName("Grinding");
+    stateMain_map[0] = { &stateFinishGrind, { 0, 0, HOLD_CLICK, 0 } };
 
     grinder.grind(true);
     display.clearDisplay();
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
-  buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
 
   //------------- init end -------------
   display.setCursor(30, 5);
   display.setTextSize(2);
   display.println("grinding...");
-  Serial.println("State: grindingState");
 }
 
 
 void stateFinishGrind() {
-  static int timeStamp;
+  static unsigned long int timeStamp = millis();
   int returnToMain = 5000;
   //------------- loop init -------------
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
-  if (mainUX.initLoop()) {
+  if (mainUX.initState()) {
+    mainUX.setStateName("FinishGrind");
     timeStamp = millis();
-    stateMain_map[0] = { &stateMain, { -1, -1, -2, -2 } };
+    stateMain_map[0] = { &stateMain, { CLICK, CLICK, CLICK, 0 } };
 
     grinder.grind(false);
     display.clearDisplay();
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
-
-  buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
 
   //------------- loop init end -------------
 
-  if (millis() - timeStamp >= returnToMain) mainUX.changeLoop(&stateMain);
-  Serial.println("State: grindFinishState");
+  if (millis() - timeStamp >= returnToMain) {
+    mainUX.changeState(&stateMain);
+  }
 }
 
 void stateCalibrate() {
   //------------- init -------------
-  const int mapCombos = 1;
+  const int mapCombos = 2;
   static ButtonMap stateMain_map[mapCombos];
-  if (mainUX.initLoop()) {
+  if (mainUX.initState()) {
+    mainUX.setStateName("Calibrate");
     // do init stuff every time loop is freshly called
-    stateMain_map[0] = { &stateCalibrateApply, { 0, 0, FLANK_DOWN, 0 } };
+    stateMain_map[0] = { &stateCalibrateApply, { 0, 0, CLICK, 0 } };
+    stateMain_map[1] = { mainUX.getHomeState(), { CLICK, CLICK, 0, CLICK } };
+
+    mainUX.setHomeState(&stateCalibrate);
 
     display.clearDisplay();
     grinder.tareZero();
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
-  buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   //------------- init end -------------
 
   display.setCursor(30, 5);
   display.setTextSize(2);
   display.println("Set 50g");
-
-  Serial.println("State: calibrateState");
 }
 
 void stateCalibrateApply() {
-  static int timeStamp;
-  int timeout = 3000;
-  //------------- init -------------
-  const int mapCombos = 4;
+  static unsigned long int timeStamp;
+  int timeout = 10000;
+  const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
-  if (mainUX.initLoop()) {
-    stateMain_map[0] = { &stateMain, { 1, 0, 0, 0 } };
-    stateMain_map[1] = { &stateMain, { 0, 1, 0, 0 } };
-    stateMain_map[2] = { &stateMain, { 0, 0, 1, 0 } };
-    stateMain_map[3] = { &stateMain, { 0, 0, 0, 1 } };
+
+  //------------- init -------------
+  if (mainUX.initState()) {
+    mainUX.setStateName("CalibrateApply");
+    stateMain_map[0] = { &stateMain, { CLICK, CLICK, CLICK, 0 } };
 
     timeStamp = millis();
     display.clearDisplay();
     //calibrate 50g
     grinder.setUnitScale(50);
+  } else {
+    buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
-  buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   //------------- init end -------------
-  Serial.println("State: stateCalibrateApply");
-  if (millis() - timeStamp >= timeout) mainUX.changeLoop(&stateMain);
+  if (millis() - timeStamp >= timeout) mainUX.changeState(&stateMain);
 
   display.setCursor(30, 5);
   display.setTextSize(2);
@@ -174,7 +161,8 @@ void stateCalibrateApply() {
 
 
 void printParams() {
-  Serial.println(grinder.getParams() + ", target: " + String(targetWeight) + ", isGrinding: " + String(grinder.isGrinding()));
+  // Serial.println("PrintParams");
+  Serial.println(grinder.getParams() + ", target: " + String(targetWeight) + ", state: " + mainUX.getStateName());
 }
 
 

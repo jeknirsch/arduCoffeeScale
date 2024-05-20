@@ -36,8 +36,9 @@ void CoffeeScale::setUnitScale(float calibrationWeight) {
 
 String CoffeeScale::getParams() {
   float scale = _scale.get_scale();
-  float offset = _scale.get_offset();
-  return "g: " + String(_currVal) + ", t: " + String(_readTime) + ", scale: " + String(scale) + ", offset: " + String(offset);
+  // long int offset = (long int)_scale.get_offset();
+  String txt = "g: " + String(_currVal) + ", t: " + String(_readTime) /*+ ", scale: " + String(scale) + ", offset: " + String(offset)*/;
+  return txt;
 }
 
 float CoffeeScale::meanValue(int timeMS, float maxError) {

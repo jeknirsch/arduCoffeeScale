@@ -19,7 +19,7 @@ private:
   float meanValue(int timeMS, float maxError);  //maxError in unit
 
   HX711 _scale;
-  int _readTime;
+  unsigned long int _readTime;
   float _currVal;
   int _relaisPin;
   bool _isGrinding = false;
@@ -46,7 +46,7 @@ private:
 
 
 class EEPROMHandler {
-  //TO-DO
+  //TOFU
 };
 
 #endif
