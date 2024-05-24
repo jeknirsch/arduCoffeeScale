@@ -3,11 +3,11 @@
 //###################### CoffeeScale class ######################
 void CoffeeScale::begin(int relaisPin, int scaleSCK, int scaleDT) {
   _relaisPin = relaisPin;
-  _scale.begin(scaleDT, scaleSCK);
+  _loadcell.begin(scaleDT, scaleSCK);
   _eepromHandler = new EEPROMHandler();
 
   //EEPROM load offset and gain from eeprom if possible
-  updateOffset_Gain();
+  readCalibration();
 }
 void CoffeeScale::grind(bool ON) {
   if (ON) {
@@ -24,51 +24,51 @@ bool CoffeeScale::isGrinding() {
 }
 
 float CoffeeScale::readUnit() {
-  float value = _scale.get_units();  //temporary
+  float value = _loadcell.get_units();  //temporary
   _readTime = millis();
   _currVal = value;
   return value;
 }
 void CoffeeScale::tareZero() {
-  _scale.tare();
-  //_scale.set_scale(15000.0f);
+  _loadcell.tare();
+  //_loadcell.set_scale(15000.0f);
 }
-void CoffeeScale::setUnitScale(float calibrationWeight) {
-  _scale.calibrate_scale(calibrationWeight);
-  //update
-  float offset = _scale.get_offset();
-  float gain = _scale.get_scale();
-  setOffset_Gain(offset, gain);
+void CoffeeScale::calibrate(float calibrationWeight) {
+  _loadcell.calibrate_scale(calibrationWeight);
+  setCalibration();
 }
 
-//reads from eeprom and updates class object
-bool CoffeeScale::updateOffset_Gain() {
-  //tofu: catch NaN maybe
-  float scaleOffset = _eepromHandler->readFloat(_offsetAddr);
-  float scaleGain = _eepromHandler->readFloat(_gainAddr);
-  if (!isnan(scaleOffset) && !isnan(scaleOffset)) {
-    _scaleOffset = scaleOffset;
-    _scaleGain = scaleGain;
-    setOffset_Gain(_scaleOffset, _scaleOffset);
+//reads from eeprom and updates scale class object
+bool CoffeeScale::readCalibration() {
+  float offset = _eepromHandler->readFloat(_offsetAddr);
+  float scale = _eepromHandler->readFloat(_scaleAddr);
+  if (!isnan(offset) && !isnan(scale)) {
+    _offset = offset;
+    _scale = scale;
+    _loadcell.set_offset(_offset);
+    _loadcell.set_scale(_scale);
     return true;
   } else {
     return false;
   }
 }
 
-//writes new offset and gain values to eeprom and updates class object
-bool CoffeeScale::setOffset_Gain(float offset, float gain) {
+//writes new offset and scale values to eeprom and updates class object
+bool CoffeeScale::setCalibration() {
+  float offset = _loadcell.get_offset();
+  float scale = _loadcell.get_scale();
+
   //write new values
   _eepromHandler->addFloat(_offsetAddr, offset);
-  _eepromHandler->addFloat(_gainAddr, gain);
+  _eepromHandler->addFloat(_scaleAddr, scale);
 
   //update class object
-  return updateOffset_Gain();
+  return readCalibration();
 }
 
 String CoffeeScale::getParams() {
-  float scale = _scale.get_scale();
-  int offset = _scale.get_offset();
+  float scale = _loadcell.get_scale();
+  int offset = _loadcell.get_offset();
   String txt = "g: ";
   txt += String(_currVal);
   txt += ", t: ";
@@ -145,7 +145,7 @@ int EEPROMHandler::calculateHashAdress(String varName) {
   //not suited for much (and big) data
   unsigned int key = 0;
   for (int i = 0; i < varName.length(); i++) {
-    if (varName.length() - 1 == i) key += varName[i] * 4;  //try to avoid colission by spacing
+    if (varName.length() - 1 == i) key += varName[i] * 4;  //try to avoid collision by spacing
     else key += varName[i];
   }
   key = key % 1023;  //reduce to adress range

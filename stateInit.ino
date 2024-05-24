@@ -86,7 +86,7 @@ void stateStartGrind() {
 
 void stateFinishGrind() {
   static unsigned long int timeStamp = millis();
-  int returnToMain = 5000;
+  int returnToMain = 5500;
   //------------- loop init -------------
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
@@ -146,7 +146,7 @@ void stateCalibrateApply() {
     timeStamp = millis();
     display.clearDisplay();
     //calibrate 50g
-    grinder.setUnitScale(50);
+    grinder.calibrate(50);
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
