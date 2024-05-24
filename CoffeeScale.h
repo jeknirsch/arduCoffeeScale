@@ -24,23 +24,23 @@ public:
   bool isGrinding();
   float readUnit();
   void tareZero();
-  void setUnitScale(float calibrationWeight = 50.0);
+  void calibrate(float calibrationWeight = 50.0);
   String getParams();
 
 private:
-  bool setOffset_Gain(float offset, float gain);
-  bool updateOffset_Gain();
+  bool setCalibration();
+  bool readCalibration();
   EEPROMHandler *_eepromHandler;
-  HX711 _scale;
+  HX711 _loadcell;
   unsigned long int _readTime;
   float _currVal;
   int _relaisPin;
   bool _isGrinding = false;
-  float _scaleOffset;
-  float _scaleGain;
+  float _offset;
+  float _scale;
 
-  const String _offsetAddr = "scale_offset";
-  const String _gainAddr = "scale_gain";
+  const String _offsetAddr = "offset";
+  const String _scaleAddr = "scale";
 };
 
 
