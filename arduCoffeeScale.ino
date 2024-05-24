@@ -29,7 +29,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 CoffeeScale grinder;
 UX mainUX;
 ButtonManager buttons(BUTTON1, BUTTON2, BUTTON3, BUTTON4);
-//Ringbuffer buffer;
+Ringbuffer buffer;
 
 
 void setup() {
@@ -65,17 +65,24 @@ void setup() {
   display.display();
 
   initUxStates();
-  // for (int i = 0; i < 15; i++) {
-  //   Serial.print("Buffer test:");
-  //   buffer.add(i);
-  //   Serial.print("Added ");
-  //   Serial.println(i);
-  //   Serial.print("Buffer ");
-  //   Serial.println(buffer.get(i));
+  Serial.println("DataBufferObjectSize: " + String(sizeof(RingbufferData)));
+
+
+
+  // Serial.println("BufferTest");
+  // RingbufferData tempData;
+  // unsigned long int timeAVG = 0;
+  // unsigned long int timeStamp = 0;
+  // for (int i = 0; i < 150; i++) {
+  //   tempData.sensorVal = (float)i;
+  //   tempData.timeMS = millis();
+  //   buffer.add(tempData); //takes about 8 - 12 us (empirical)
+  //   //Serial.println(String(i) + " ---> t: " + String(millis()) + ", val: " + String(buffer.get(i).sensorVal) + ", raw: " + String(tempData.sensorVal));
   // }
 
+  // Serial.println("Final Buffer");
   // for (int i = 0; i < 10; i++) {
-  //   Serial.println(buffer.get(i));
+  //   Serial.println(String(i) + " ---> t: " + String(millis()) + ", val: " + String(buffer.get(i).sensorVal));
   // }
 }
 

@@ -2,8 +2,19 @@
 #define COFFEESCALE_H
 
 #include <HX711.h>
+#include <EEPROM.h>
 
-#define ringBufferSize 10
+#define RINGBUFFERSIZE 10
+
+struct RingbufferData {
+  float sensorVal;
+  unsigned int timeMS;
+};
+
+//class Prototypes
+class CoffeeScale;
+class Ringbuffer;
+class EEPROMHandler;
 
 //###################### CoffeScale main Class ######################
 class CoffeeScale {
@@ -15,30 +26,37 @@ public:
   void tareZero();
   void setUnitScale(float calibrationWeight = 50.0);
   String getParams();
-private:
-  float meanValue(int timeMS, float maxError);  //maxError in unit
 
+private:
+  bool setOffset_Gain(float offset, float gain);
+  bool updateOffset_Gain();
+  EEPROMHandler *_eepromHandler;
   HX711 _scale;
   unsigned long int _readTime;
   float _currVal;
   int _relaisPin;
   bool _isGrinding = false;
-  float _unitScale;
-  float _loadZero;
+  float _scaleOffset;
+  float _scaleGain;
+
+  const String _offsetAddr = "scale_offset";
+  const String _gainAddr = "scale_gain";
 };
 
 
 //###################### Ringbuffer Class ######################
 class Ringbuffer {
 public:
-  void add(float value);
-  float get(int index);
+  void add(RingbufferData data);
+  RingbufferData get(int index);
   float mean(int range);
   int getSize();
 private:
-  float _ringBuffer[ringBufferSize];    //allocate space for array
-  const int _ringSize = ringBufferSize; //save ringSize as readonly
-  int _ringIndex = 0;                   //inicating the next spot to write new data
+  RingbufferData _ringBuffer[RINGBUFFERSIZE];  //allocate space for array
+  const int _ringSize = RINGBUFFERSIZE;        //save ringSize as readonly
+  int _ringIndex = 0;                          //inicating the next spot to write new data
+
+  int convertIndex(int relIndex);
 };
 
 
@@ -47,6 +65,11 @@ private:
 
 class EEPROMHandler {
   //TOFU
+public:
+  void addFloat(String varName, float value);
+  float readFloat(String varName);
+  int calculateHashAdress(String varName);
+private:
 };
 
 #endif

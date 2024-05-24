@@ -161,10 +161,12 @@ void stateCalibrateApply() {
 
 
 void printParams() {
-  // Serial.println("PrintParams");
-  Serial.println(grinder.getParams() + ", target: " + String(targetWeight) + ", state: " + mainUX.getStateName());
+  Serial.print(grinder.getParams());
+  Serial.print(", target: ");
+  Serial.print(targetWeight);
+  Serial.print(", state: ");
+  Serial.println(mainUX.getStateName());
 }
-
 
 void initUxStates() {
   //init start loop
