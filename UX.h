@@ -18,6 +18,14 @@ enum ButtonStates {
   HOLD = 6
 };
 
+enum Anchor {
+  LEFT = -1,
+  TOP = -1,
+  CENTER = 0,
+  RIGHT = 1,
+  BOTTOM = 1
+};
+
 //stateStruct
 struct ButtonMap {
   FunctionPointer stateFunction;
@@ -63,8 +71,8 @@ public:
 
 private:
   int _pin0, _pin1, _pin2, _pin3;
-  const int _debounceTimeMS = 50;  //debounce time -> button signal refreshrate
-  int _buttonMode[BUTTON_NUMBER] = { 0 }; //
+  const int _debounceTimeMS = 50;                //debounce time -> button signal refreshrate
+  int _buttonMode[BUTTON_NUMBER] = { 0 };        //
   bool _buttonState[BUTTON_NUMBER] = { false };  //true = button pressed, false = button not pressed
   bool _lastButtonState[BUTTON_NUMBER] = { false };
   unsigned long int _buttonPressedMS[BUTTON_NUMBER] = { 0 };  //saves the timestamp a button is pressed -1 if button is released
@@ -76,26 +84,29 @@ class UI_Element {
 public:
   UI_Element(Adafruit_SSD1306 *display);
 protected:
+  void _getDisplayAnchor();
+  void _applyAnchor();
   Adafruit_SSD1306 *_display;
+  int _x, _y, _w, _h;
+  int _elementAnchorX, _elementAnchorY, _targetAnchorX, _targetAnchorY;
 };
 
-class UI_Number : public UI_Element {
+class UI_Text : public UI_Element {
 public:
-  UI_Number(int x, int y, int fontSize, Adafruit_SSD1306 *display);
-  void drawNumber(float number, bool isFloat = true);
+  UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int targetAnchorY, int fontSize, Adafruit_SSD1306 *display);
+  void setText(String text);
   void setSuffix(String suffix);
+  void setPrefix(String prefix);
 private:
-  bool _float = true;  //int vs float
-  int _x, _y;
   int _fontSize = 1;
-  float _number;
-  int _preDecimal, _postDecimal;  //handle numbers pre and post decimal poin separately to dispaly a fixed deciaml point
-  String _suffix;
+  char *_text;
+  const char *_prefix;
+  const char *_suffix;
 };
 
 class UI_Graph : public UI_Element {
 public:
-  UI_Graph(int x, int y, int width, int height, Adafruit_SSD1306 *display);
+  UI_Graph(int elementAnchorX, int elementAnchorY, int targetAnchorX, int width, int height, Adafruit_SSD1306 *display);
   void setGraphResolution(int dataPoints);  //number of dataPoints displayed on the graph -> max datapoints = max width (px)
   void setDataBuffer(Ringbuffer *buffer);
 private:

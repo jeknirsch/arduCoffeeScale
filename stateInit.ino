@@ -8,9 +8,11 @@ float targetWeight = 16.0;
 int grindTimeStamp = 0;
 
 struct UI_Layout {
-  UI_Number mainNumber;
+  UI_Text mainNumber;
+  UI_Text stateDisplay;
   UI_Layout()
-    : mainNumber(0, 0, 3, &display){};  //Initialize elements in struct constructor
+    : mainNumber(RIGHT, CENTER, RIGHT, CENTER, 2, &display),
+      stateDisplay(LEFT, TOP, LEFT, TOP, 1, &display){};  //Initialize elements in struct constructor
 };
 
 UI_Layout ui;  //Create global ui handler
@@ -35,9 +37,11 @@ void stateMain() {
   //------------- init end -------------
 
   float unitsVal = grinder.readUnit();
+  char c = 'a';
   display.clearDisplay();
   ui.mainNumber.setSuffix("g");
-  ui.mainNumber.drawNumber(unitsVal);
+  ui.mainNumber.setText(String(unitsVal) + "g");
+  ui.stateDisplay.setText("mainstate");
 }
 
 void stateAutoGrind() {
@@ -49,9 +53,13 @@ void stateAutoGrind() {
   if (mainUX.initState()) {
     mainUX.setStateName("Autogrind");
     timeStamp = millis();
+    grindTimeStamp = millis();
     stateMain_map[0] = { &stateFinishGrind, { CLICK, CLICK, CLICK, CLICK } };
+    grinder.tareZero();
     grinder.grind(true);
     display.clearDisplay();
+    ui.stateDisplay.setText("AutoGrind");
+
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
@@ -61,6 +69,9 @@ void stateAutoGrind() {
 
   if (millis() - timeStamp >= timeout) mainUX.changeState(&stateFinishGrind);
   if (unitsVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
+  display.clearDisplay();
+  ui.stateDisplay.setText("AutoGrind");
+  ui.mainNumber.setText(String(unitsVal) + "g");
 }
 
 void stateStartGrind() {
@@ -93,6 +104,7 @@ void stateFinishGrind() {
   if (mainUX.initState()) {
     mainUX.setStateName("FinishGrind");
     timeStamp = millis();
+    grindTimeStamp = millis() - grindTimeStamp;
     stateMain_map[0] = { &stateMain, { CLICK, CLICK, CLICK, 0 } };
 
     grinder.grind(false);
@@ -102,6 +114,13 @@ void stateFinishGrind() {
   }
 
   //------------- loop init end -------------
+
+  float unitsVal = grinder.readUnit();
+  display.clearDisplay();
+  ui.stateDisplay.setText(String("Grind Finish" + String(unitsVal)));
+
+  ui.mainNumber.setText(String(grindTimeStamp / 1000.0));
+
 
   if (millis() - timeStamp >= returnToMain) {
     mainUX.changeState(&stateMain);
@@ -154,7 +173,7 @@ void stateCalibrateApply() {
   if (millis() - timeStamp >= timeout) mainUX.changeState(&stateMain);
 
   display.setCursor(30, 5);
-  display.setTextSize(2);
+  display.setTextSize(1);
   display.println("Calibrated");
 }
 
@@ -172,5 +191,5 @@ void initUxStates() {
   //init start loop
   mainUX.init(&stateMain);
 
-  Serial.println("State functions assigned");
+  // Serial.println("State functions assigned");
 }

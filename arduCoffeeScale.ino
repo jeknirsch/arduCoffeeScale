@@ -1,10 +1,3 @@
-#include <HX711.h>
-#include "CoffeeScale.h"
-#include "UX.h"
-#include <SPI.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
 //pin defines
 #define RELAISPIN 9  //D1
 #define SCALE_SCK 7  //D7
@@ -23,6 +16,13 @@
 #define SCREEN_HEIGHT 32
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C
+
+#include <HX711.h>
+#include "CoffeeScale.h"
+#include "UX.h"
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 //object defines
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);

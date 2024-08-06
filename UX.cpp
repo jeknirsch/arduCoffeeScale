@@ -154,22 +154,73 @@ bool ButtonManager::applyButtonPress(UX *buttonUX, ButtonMap *buttonMap, int len
 UI_Element::UI_Element(Adafruit_SSD1306 *display)
   : _display(display) {}
 
+void UI_Element::_getDisplayAnchor() {
+  uint16_t cw = _display->width() / 2;
+  uint16_t ch = _display->height() / 2;
 
-UI_Number::UI_Number(int x, int y, int fontSize, Adafruit_SSD1306 *display)
-  : _x(x), _y(y), _fontSize(fontSize), UI_Element(display) {}
-void UI_Number::drawNumber(float number, bool isFloat) {
-  _number = number;
-  _display->setCursor(_x, _y);
+  //Tofu pointer check
+  _x = cw + cw * (_targetAnchorX);
+  _y = ch + ch * (_targetAnchorY);
+}
+
+void UI_Element::_applyAnchor() {
+
+  uint16_t cw = _w / 2;
+  uint16_t ch = _h / 2;
+
+  _x = _x - cw * (_elementAnchorX + 1);
+  _y = _y - ch * (_elementAnchorY + 1);
+}
+
+
+UI_Text::UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int targetAnchorY, int fontSize, Adafruit_SSD1306 *display)
+  : _fontSize(fontSize), UI_Element(display) {
+  _elementAnchorX = elementAnchorX;
+  _elementAnchorY = elementAnchorY;
+  _targetAnchorX = targetAnchorX;
+  _targetAnchorY = targetAnchorY;
+}
+
+void UI_Text::setText(String text) {
+  char *tmp;
+  // strcpy(tmp, text.c_str());
+  // strcat(tmp, _suffix);
+  // _text = _prefix + text.c_str() + _suffix;
+  _text = text.c_str();
+  // Serial.print("Element coords x: ");
+  // Serial.print(_x);
+  // Serial.print(", y: ");
+  // Serial.print(_y);
+  // Serial.print(", text: ");
+  // Serial.println(tmp);
+
+
+  int16_t x1 = 0;
+  int16_t y1 = 0;
+  _w = 0;
+  _h = 0;
   _display->setTextSize(_fontSize);
-  _display->println(String(_number) + _suffix);
+  _display->getTextBounds(text, (int16_t)&_x, (int16_t)&_y, &x1, &y1, (uint16_t *)&_w, (uint16_t *)&_h);
+  _getDisplayAnchor();
+  _applyAnchor();
+  _display->setCursor(_x, _y);
+  _display->println(_text);
 }
-void UI_Number::setSuffix(String suffix) {
-  _suffix = suffix;
+
+void UI_Text::setSuffix(String suffix) {
+  _suffix = suffix.c_str();
+}
+
+void UI_Text::setPrefix(String prefix) {
+  _prefix = prefix.c_str();
 }
 
 
-UI_Graph::UI_Graph(int x, int y, int width, int height, Adafruit_SSD1306 *display)
-  : UI_Element(display) {}
+
+UI_Graph::UI_Graph(int elementAnchorX, int elementAnchorY, int targetAnchorX, int width, int height, Adafruit_SSD1306 *display)
+  : UI_Element(display) {
+}
+
 void UI_Graph::setGraphResolution(int dataPoints) {
   _dataPoints = dataPoints;
 }
