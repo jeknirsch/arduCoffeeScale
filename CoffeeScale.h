@@ -8,7 +8,7 @@
 
 struct RingbufferData {
   float sensorVal;
-  unsigned int timeMS;
+  unsigned long int timeMS;
 };
 
 //class Prototypes
@@ -22,7 +22,8 @@ public:
   void begin(int relaisPin, int scaleSCK, int scaleDT);
   void grind(bool ON);
   bool isGrinding();
-  float readUnit();
+  float readScale();
+  RingbufferData getData();
   void tareZero();
   void calibrate(float calibrationWeight = 50.0);
   String getParams();
@@ -48,15 +49,15 @@ private:
 class Ringbuffer {
 public:
   void add(RingbufferData data);
-  RingbufferData get(int index);
+  RingbufferData get(int index = 0);
   float mean(int range);
   int getSize();
 private:
   RingbufferData _ringBuffer[RINGBUFFERSIZE];  //allocate space for array
   const int _ringSize = RINGBUFFERSIZE;        //save ringSize as readonly
-  int _ringIndex = 0;                          //inicating the next spot to write new data
+  int _ringIndex = -1;                         //inicating the next spot to write new data
 
-  int convertIndex(int relIndex);
+  int convertIndex(unsigned int relIndex);
 };
 
 

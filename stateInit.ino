@@ -5,7 +5,7 @@ void stateFinishGrind();
 
 
 float targetWeight = 16.0;
-int grindTimeStamp = 0;
+unsigned long int grindTimeStamp = 0;
 
 struct UI_Layout {
   UI_Text mainNumber;
@@ -18,6 +18,8 @@ struct UI_Layout {
 UI_Layout ui;  //Create global ui handler
 
 void stateMain() {
+  
+
   //------------- init -------------
   const int mapCombos = 3;
   static ButtonMap stateMain_map[mapCombos];
@@ -36,7 +38,7 @@ void stateMain() {
 
   //------------- init end -------------
 
-  float unitsVal = grinder.readUnit();
+  float unitsVal = grinder.readScale();
   char c = 'a';
   display.clearDisplay();
   ui.mainNumber.setSuffix("g");
@@ -65,7 +67,7 @@ void stateAutoGrind() {
   }
   //------------- loop init end -------------
 
-  float unitsVal = grinder.readUnit();
+  float unitsVal = grinder.readScale();
 
   if (millis() - timeStamp >= timeout) mainUX.changeState(&stateFinishGrind);
   if (unitsVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
@@ -115,7 +117,7 @@ void stateFinishGrind() {
 
   //------------- loop init end -------------
 
-  float unitsVal = grinder.readUnit();
+  float unitsVal = grinder.readScale();
   display.clearDisplay();
   ui.stateDisplay.setText(String("Grind Finish" + String(unitsVal)));
 

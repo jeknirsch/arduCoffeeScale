@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "CoffeeScale.h"
 
 //###################### CoffeeScale class ######################
@@ -23,12 +24,21 @@ bool CoffeeScale::isGrinding() {
   return _isGrinding;
 }
 
-float CoffeeScale::readUnit() {
-  float value = _loadcell.get_units();  //temporary
+float CoffeeScale::readScale() {
+  float value = _loadcell.get_units();
   _readTime = millis();
   _currVal = value;
   return value;
 }
+
+RingbufferData CoffeeScale::getData() {
+  readScale();
+  RingbufferData data;
+  data.sensorVal = _currVal;
+  data.timeMS = _readTime;
+  return data;
+}
+
 void CoffeeScale::tareZero() {
   _loadcell.tare();
   //_loadcell.set_scale(15000.0f);
@@ -82,15 +92,23 @@ String CoffeeScale::getParams() {
 
 //###################### Ringbuffer class ######################
 void Ringbuffer::add(RingbufferData value) {
+  if (_ringIndex + 1 >= _ringSize) _ringIndex = -1;  //if index out of bounds wrap to 0
+  _ringIndex++;
   _ringBuffer[_ringIndex] = value;
+
+  // Serial.println(_ringIndex);
+  // Serial.println(_ringBuffer[_ringIndex].sensorVal);
   //index handling
   // Serial.println("BufferInternal ---> val: " + String(value.sensorVal) + ", buffer: " + String(_ringBuffer[_ringIndex].sensorVal));
-  _ringIndex++;
-  if (_ringIndex >= _ringSize) _ringIndex = 0;  //if index out of bounds wrap to 0
 }
 
-RingbufferData Ringbuffer::get(int index = -1) {
+RingbufferData Ringbuffer::get(int index) {
   index = convertIndex(index);
+
+  if (index < 0) {
+    Serial.println("Adios");
+    while(true){}; //BÖSE! TODO
+  }
   return _ringBuffer[index];
 }
 
@@ -103,14 +121,9 @@ int Ringbuffer::getSize() {
   return _ringSize;
 }
 
-int Ringbuffer::convertIndex(int relIndex) {
-  int absolutIndex = relIndex;
-  //convert relative ring index to absolut array index
-  absolutIndex = (_ringIndex + relIndex) % (_ringSize);
-  // Serial.print("From relIndex " + String(relIndex) + " to (" + String(_ringIndex) + "+" + String(relIndex) + ") % (" + String(_ringSize) + ") = absIndex = " + String(absolutIndex));
-
-  //index out of bounds catch --> return index = 0 for oob violation
-  if (absolutIndex < 0 || absolutIndex >= _ringSize) absolutIndex = 0;
+int Ringbuffer::convertIndex(unsigned int relIndex) {
+  int absolutIndex = _ringIndex - relIndex;
+  if (absolutIndex < 0) absolutIndex = _ringSize + absolutIndex;
   return absolutIndex;
 }
 

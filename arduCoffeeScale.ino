@@ -29,7 +29,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 CoffeeScale grinder;
 UX mainUX;
 ButtonManager buttons(BUTTON1, BUTTON2, BUTTON3, BUTTON4);
-Ringbuffer buffer;
+Ringbuffer data;
 
 
 void setup() {
@@ -66,30 +66,44 @@ void setup() {
 
   initUxStates();
   Serial.println("DataBufferObjectSize: " + String(sizeof(RingbufferData)));
+  Serial.print("MODULO: "); Serial.println(-3%10);
 
 
+  Serial.println("BufferTest");
+  RingbufferData tempData;
+  unsigned long int timeAVG = 0;
+  unsigned long int timeStamp = 0;
+  for (int i = 0; i < 15; i++) {
+    tempData.sensorVal = (float)i;
+    tempData.timeMS = millis();
+    data.add(tempData);
+    Serial.print("LoopVal: ");
+    Serial.print((float)i);
+    Serial.print(", bufferVal: ");
+    Serial.println(data.get().sensorVal);
 
-  // Serial.println("BufferTest");
-  // RingbufferData tempData;
-  // unsigned long int timeAVG = 0;
-  // unsigned long int timeStamp = 0;
-  // for (int i = 0; i < 150; i++) {
-  //   tempData.sensorVal = (float)i;
-  //   tempData.timeMS = millis();
-  //   buffer.add(tempData); //takes about 8 - 12 us (empirical)
-  //   //Serial.println(String(i) + " ---> t: " + String(millis()) + ", val: " + String(buffer.get(i).sensorVal) + ", raw: " + String(tempData.sensorVal));
-  // }
+    // data.add(tempData);
+    // delay(100);
+    // Serial.print("LoopVal: ");
+    // Serial.print((float)i);
+    // Serial.print(", bufferVal: ");
+    // Serial.println(data.get().sensorVal);
+  }
 
-  // Serial.println("Final Buffer");
-  // for (int i = 0; i < 10; i++) {
-  //   Serial.println(String(i) + " ---> t: " + String(millis()) + ", val: " + String(buffer.get(i).sensorVal));
-  // }
+  Serial.println("Final Buffer");
+  for (int i = 0; i < 10; i++) {
+    Serial.print("LoopVal: ");
+    Serial.print(i);
+    Serial.print(", bufferVal: ");
+    Serial.println(data.get(i).sensorVal);
+  }
 }
 
 
 void loop() {
   mainUX.uxLoop();
   buttons.buttonLoop();
+  // data.add();
 
   //display refresh
   static unsigned long int timestamp = millis();
