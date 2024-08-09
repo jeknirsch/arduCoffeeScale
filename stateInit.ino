@@ -10,15 +10,19 @@ unsigned long int grindTimeStamp = 0;
 struct UI_Layout {
   UI_Text mainNumber;
   UI_Text stateDisplay;
+  // UI_Text smallNumber;
+  // UI_Graph grindGraph;
   UI_Layout()
+    //Initialize elements in struct constructor
     : mainNumber(RIGHT, CENTER, RIGHT, CENTER, 2, &display),
-      stateDisplay(LEFT, TOP, LEFT, TOP, 1, &display){};  //Initialize elements in struct constructor
+      stateDisplay(LEFT, TOP, LEFT, TOP, 1, &display){};
+      // smallNumber(LEFT, BOTTOM, LEFT, BOTTOM, 1, &display){};
 };
 
 UI_Layout ui;  //Create global ui handler
 
 void stateMain() {
-  
+
 
   //------------- init -------------
   const int mapCombos = 3;
@@ -30,25 +34,30 @@ void stateMain() {
     stateMain_map[2] = { &stateAutoGrind, { 0, 0, CLICK, 0 } };
 
     mainUX.setHomeState(&stateMain);
-
     display.clearDisplay();
+
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
 
   //------------- init end -------------
-
-  float unitsVal = grinder.readScale();
-  char c = 'a';
+  // Serial.print("STATENAME: ");
+  // Serial.println(mainUX.getStateName());
+  // float unitsVal = grinder.readScale();
   display.clearDisplay();
   ui.mainNumber.setSuffix("g");
-  ui.mainNumber.setText(String(unitsVal) + "g");
+
+  float val = data.get().sensorVal;
+  String txt = String(val);
+  txt = txt + " g";
+  Serial.println(String(val));
   ui.stateDisplay.setText("mainstate");
+  ui.mainNumber.setText(txt);
 }
 
 void stateAutoGrind() {
-  static int timeStamp;
-  int timeout = 60000;
+  static unsigned long int timeStamp;
+  unsigned long int timeout = 60000;
   //------------- loop init -------------
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
@@ -67,13 +76,13 @@ void stateAutoGrind() {
   }
   //------------- loop init end -------------
 
-  float unitsVal = grinder.readScale();
+  // float unitsVal = grinder.readScale();
 
   if (millis() - timeStamp >= timeout) mainUX.changeState(&stateFinishGrind);
-  if (unitsVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
+  if (data.get().sensorVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
   display.clearDisplay();
   ui.stateDisplay.setText("AutoGrind");
-  ui.mainNumber.setText(String(unitsVal) + "g");
+  ui.mainNumber.setText(String(data.get().sensorVal) + "g");
 }
 
 void stateStartGrind() {
@@ -98,8 +107,8 @@ void stateStartGrind() {
 
 
 void stateFinishGrind() {
-  static unsigned long int timeStamp = millis();
-  int returnToMain = 5500;
+  static unsigned long timeStamp = millis();
+  unsigned long returnToMain = 5500;
   //------------- loop init -------------
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
@@ -117,9 +126,9 @@ void stateFinishGrind() {
 
   //------------- loop init end -------------
 
-  float unitsVal = grinder.readScale();
+  // float unitsVal = grinder.readScale();
   display.clearDisplay();
-  ui.stateDisplay.setText(String("Grind Finish" + String(unitsVal)));
+  ui.stateDisplay.setText(String("Grind Finish"/* + String(data.get().sensorVal)*/));
 
   ui.mainNumber.setText(String(grindTimeStamp / 1000.0));
 
@@ -155,7 +164,7 @@ void stateCalibrate() {
 
 void stateCalibrateApply() {
   static unsigned long int timeStamp;
-  int timeout = 10000;
+  unsigned long timeout = 10000;
   const int mapCombos = 1;
   static ButtonMap stateMain_map[mapCombos];
 
@@ -177,16 +186,6 @@ void stateCalibrateApply() {
   display.setCursor(30, 5);
   display.setTextSize(1);
   display.println("Calibrated");
-}
-
-
-
-void printParams() {
-  Serial.print(grinder.getParams());
-  Serial.print(", target: ");
-  Serial.print(targetWeight);
-  Serial.print(", state: ");
-  Serial.println(mainUX.getStateName());
 }
 
 void initUxStates() {

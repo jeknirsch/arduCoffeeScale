@@ -77,17 +77,25 @@ bool CoffeeScale::setCalibration() {
 }
 
 String CoffeeScale::getParams() {
-  float scale = _loadcell.get_scale();
-  int offset = _loadcell.get_offset();
-  String txt = "g: ";
-  txt += String(_currVal);
-  txt += ", t: ";
-  txt += String(_readTime);
-  txt += ", scale: ";
-  txt += String(scale);
-  txt += ", offset: ";
-  txt += String(offset);
-  return txt;
+  // BROKEN DONT TOUCH
+  // float scale = _loadcell.get_scale();
+  // int offset = _loadcell.get_offset();
+
+  // char buffer[64];
+
+  // Format the string into the buffer
+  // sprintf(buffer, "g: %.2f, t: %lu, scale: %.2f, offset: %d", _currVal, _readTime, scale, offset);
+  // String txt = String(buffer);
+
+  // String txt = "g: ";
+  // txt = txt + String(_currVal);
+  // txt = txt + ", t: ";
+  // txt = txt + String(_readTime);
+  // txt = txt + ", scale: ";
+  // txt = txt + String(scale);
+  // txt = txt + ", offset: ";
+  // txt = txt + String(offset);
+  return "";
 }
 
 //###################### Ringbuffer class ######################

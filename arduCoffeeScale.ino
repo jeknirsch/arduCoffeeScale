@@ -65,51 +65,51 @@ void setup() {
   display.display();
 
   initUxStates();
-  Serial.println("DataBufferObjectSize: " + String(sizeof(RingbufferData)));
-  Serial.print("MODULO: "); Serial.println(-3%10);
+  Serial.println("UX Init");
 
 
-  Serial.println("BufferTest");
-  RingbufferData tempData;
-  unsigned long int timeAVG = 0;
-  unsigned long int timeStamp = 0;
-  for (int i = 0; i < 15; i++) {
-    tempData.sensorVal = (float)i;
-    tempData.timeMS = millis();
-    data.add(tempData);
-    Serial.print("LoopVal: ");
-    Serial.print((float)i);
-    Serial.print(", bufferVal: ");
-    Serial.println(data.get().sensorVal);
+  // Serial.println("BufferTest");
+  // RingbufferData tempData;
+  // unsigned long int timeAVG = 0;
+  // unsigned long int timeStamp = 0;
+  // for (int i = 0; i < 15; i++) {
+  //   tempData.sensorVal = (float)i;
+  //   tempData.timeMS = millis();
+  //   data.add(tempData);
+  //   Serial.print("LoopVal: ");
+  //   Serial.print((float)i);
+  //   Serial.print(", bufferVal: ");
+  //   Serial.println(data.get().sensorVal);
 
-    // data.add(tempData);
-    // delay(100);
-    // Serial.print("LoopVal: ");
-    // Serial.print((float)i);
-    // Serial.print(", bufferVal: ");
-    // Serial.println(data.get().sensorVal);
-  }
+  //   // data.add(tempData);
+  //   // delay(100);
+  //   // Serial.print("LoopVal: ");
+  //   // Serial.print((float)i);
+  //   // Serial.print(", bufferVal: ");
+  //   // Serial.println(data.get().sensorVal);
+  // }
 
-  Serial.println("Final Buffer");
-  for (int i = 0; i < 10; i++) {
-    Serial.print("LoopVal: ");
-    Serial.print(i);
-    Serial.print(", bufferVal: ");
-    Serial.println(data.get(i).sensorVal);
-  }
+  // Serial.println("Final Buffer");
+  // for (int i = 0; i < 10; i++) {
+  //   Serial.print("LoopVal: ");
+  //   Serial.print(i);
+  //   Serial.print(", bufferVal: ");
+  //   Serial.println(data.get(i).sensorVal);
+  // }
 }
 
 
 void loop() {
   mainUX.uxLoop();
   buttons.buttonLoop();
-  // data.add();
+
+  RingbufferData lol = grinder.getData();
+  data.add(lol);
 
   //display refresh
-  static unsigned long int timestamp = millis();
+  static unsigned long timestamp = millis();
   if (millis() - timestamp > 100) {
     display.display();
     timestamp = millis();
-    printParams();
   }
 }

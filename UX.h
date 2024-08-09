@@ -44,7 +44,7 @@ public:
   void uxLoop();
   void setHomeState(FunctionPointer homeState);
   FunctionPointer getHomeState();
-  void setStateName(String stateName = "");
+  void setStateName(String stateName);
   String getStateName();
 private:
   //TO DO: Move buttonManger in UX class for ez use
@@ -71,7 +71,7 @@ public:
 
 private:
   int _pin0, _pin1, _pin2, _pin3;
-  const int _debounceTimeMS = 50;                //debounce time -> button signal refreshrate
+  const unsigned long int _debounceTimeMS = 50;                //debounce time -> button signal refreshrate
   int _buttonMode[BUTTON_NUMBER] = { 0 };        //
   bool _buttonState[BUTTON_NUMBER] = { false };  //true = button pressed, false = button not pressed
   bool _lastButtonState[BUTTON_NUMBER] = { false };
@@ -100,8 +100,8 @@ public:
 private:
   int _fontSize = 1;
   char *_text;
-  const char *_prefix;
-  const char *_suffix;
+  char *_prefix;
+  char *_suffix;
 };
 
 class UI_Graph : public UI_Element {
