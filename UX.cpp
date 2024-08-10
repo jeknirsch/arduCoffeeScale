@@ -164,7 +164,8 @@ void UI_Element::_getDisplayAnchor() {
 }
 
 void UI_Element::_applyAnchor() {
-
+  _getDisplayAnchor();
+  
   uint16_t cw = _w / 2;
   uint16_t ch = _h / 2;
 
@@ -179,20 +180,22 @@ UI_Text::UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int 
   _elementAnchorY = elementAnchorY;
   _targetAnchorX = targetAnchorX;
   _targetAnchorY = targetAnchorY;
+  _prefix = "";
+  _suffix = "";
 }
 
-void UI_Text::setText(String text) {
-  char *tmp;
-  // strcpy(tmp, text.c_str());
-  // strcat(tmp, _suffix);
-  // _text = _prefix + text.c_str() + _suffix;
-  _text = text.c_str();
-  // Serial.print("Element coords x: ");
-  // Serial.print(_x);
-  // Serial.print(", y: ");
-  // Serial.print(_y);
-  // Serial.print(", text: ");
-  // Serial.println(tmp);
+void UI_Text::setText(float val) {
+  char txt[16];
+  dtostrf(val, 1, 2, txt);
+  setText(txt);
+}
+
+void UI_Text::setText(char *text) {
+  _text = text;
+  char finalText[16];
+  strcpy(finalText, _prefix);
+  strcat(finalText, _text);
+  strcat(finalText, _suffix);
 
 
   int16_t x1 = 0;
@@ -200,19 +203,18 @@ void UI_Text::setText(String text) {
   _w = 0;
   _h = 0;
   _display->setTextSize(_fontSize);
-  _display->getTextBounds(text, (int16_t)&_x, (int16_t)&_y, &x1, &y1, (uint16_t *)&_w, (uint16_t *)&_h);
-  _getDisplayAnchor();
+  _display->getTextBounds(finalText, (int16_t)&_x, (int16_t)&_y, &x1, &y1, (uint16_t *)&_w, (uint16_t *)&_h);
   _applyAnchor();
   _display->setCursor(_x, _y);
-  _display->println(_text);
+  _display->println(finalText);
 }
 
-void UI_Text::setSuffix(String suffix) {
-  _suffix = suffix.c_str();
+void UI_Text::setSuffix(char *suffix) {
+  _suffix = suffix;
 }
 
-void UI_Text::setPrefix(String prefix) {
-  _prefix = prefix.c_str();
+void UI_Text::setPrefix(char *prefix) {
+  _prefix = prefix;
 }
 
 

@@ -1,3 +1,5 @@
+#define VERSION 0.0
+
 //pin defines
 #define RELAISPIN 9  //D1
 #define SCALE_SCK 7  //D7

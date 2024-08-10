@@ -10,13 +10,13 @@ unsigned long int grindTimeStamp = 0;
 struct UI_Layout {
   UI_Text mainNumber;
   UI_Text stateDisplay;
-  // UI_Text smallNumber;
+  UI_Text smallNumber;
   // UI_Graph grindGraph;
   UI_Layout()
     //Initialize elements in struct constructor
     : mainNumber(RIGHT, CENTER, RIGHT, CENTER, 2, &display),
-      stateDisplay(LEFT, TOP, LEFT, TOP, 1, &display){};
-      // smallNumber(LEFT, BOTTOM, LEFT, BOTTOM, 1, &display){};
+      stateDisplay(LEFT, TOP, LEFT, TOP, 1, &display),  //{};
+      smallNumber(LEFT, BOTTOM, LEFT, BOTTOM, 1, &display){};
 };
 
 UI_Layout ui;  //Create global ui handler
@@ -32,7 +32,9 @@ void stateMain() {
     stateMain_map[0] = { &stateStartGrind, { 0, 0, HOLD, 0 } };
     stateMain_map[1] = { &stateCalibrate, { 0, CLICK, 0, 0 } };
     stateMain_map[2] = { &stateAutoGrind, { 0, 0, CLICK, 0 } };
-
+    ui.mainNumber.setSuffix("g");
+    ui.smallNumber.setPrefix("v");
+    ui.smallNumber.setSuffix("");
     mainUX.setHomeState(&stateMain);
     display.clearDisplay();
 
@@ -45,14 +47,11 @@ void stateMain() {
   // Serial.println(mainUX.getStateName());
   // float unitsVal = grinder.readScale();
   display.clearDisplay();
-  ui.mainNumber.setSuffix("g");
 
   float val = data.get().sensorVal;
-  String txt = String(val);
-  txt = txt + " g";
-  Serial.println(String(val));
   ui.stateDisplay.setText("mainstate");
-  ui.mainNumber.setText(txt);
+  ui.mainNumber.setText(val);
+  ui.smallNumber.setText(float(VERSION));
 }
 
 void stateAutoGrind() {
@@ -70,7 +69,8 @@ void stateAutoGrind() {
     grinder.grind(true);
     display.clearDisplay();
     ui.stateDisplay.setText("AutoGrind");
-
+    ui.smallNumber.setPrefix("");
+    ui.smallNumber.setSuffix("s");
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
@@ -82,7 +82,8 @@ void stateAutoGrind() {
   if (data.get().sensorVal >= targetWeight) mainUX.changeState(&stateFinishGrind);
   display.clearDisplay();
   ui.stateDisplay.setText("AutoGrind");
-  ui.mainNumber.setText(String(data.get().sensorVal) + "g");
+  ui.mainNumber.setText(data.get().sensorVal);
+  ui.smallNumber.setText(float(millis() - timeStamp) / 1000.0);
 }
 
 void stateStartGrind() {
@@ -117,7 +118,9 @@ void stateFinishGrind() {
     timeStamp = millis();
     grindTimeStamp = millis() - grindTimeStamp;
     stateMain_map[0] = { &stateMain, { CLICK, CLICK, CLICK, 0 } };
-
+    ui.mainNumber.setSuffix("g");
+    ui.smallNumber.setPrefix("");
+    ui.smallNumber.setSuffix("s");
     grinder.grind(false);
     display.clearDisplay();
   } else {
@@ -126,11 +129,11 @@ void stateFinishGrind() {
 
   //------------- loop init end -------------
 
-  // float unitsVal = grinder.readScale();
-  display.clearDisplay();
-  ui.stateDisplay.setText(String("Grind Finish"/* + String(data.get().sensorVal)*/));
 
-  ui.mainNumber.setText(String(grindTimeStamp / 1000.0));
+  display.clearDisplay();
+  ui.stateDisplay.setText("Grind finished");
+  ui.smallNumber.setText(float(grindTimeStamp/1000.0));
+  ui.mainNumber.setText(data.get().sensorVal);
 
 
   if (millis() - timeStamp >= returnToMain) {

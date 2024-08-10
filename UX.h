@@ -94,9 +94,10 @@ protected:
 class UI_Text : public UI_Element {
 public:
   UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int targetAnchorY, int fontSize, Adafruit_SSD1306 *display);
-  void setText(String text);
-  void setSuffix(String suffix);
-  void setPrefix(String prefix);
+  void setText(float val);
+  void setText(char *text);
+  void setSuffix(char *suffix);
+  void setPrefix(char *prefix);
 private:
   int _fontSize = 1;
   char *_text;
