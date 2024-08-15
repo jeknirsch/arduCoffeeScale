@@ -27,11 +27,11 @@
 #include <Adafruit_SSD1306.h>
 
 //object defines
+Ringbuffer data;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 CoffeeScale grinder;
 UX mainUX;
 ButtonManager buttons(BUTTON1, BUTTON2, BUTTON3, BUTTON4);
-Ringbuffer data;
 
 
 void setup() {
@@ -57,61 +57,37 @@ void setup() {
 
   grinder.tareZero();
 
-  // int timeStamp = millis();
-  // printState();
-  // timeStamp = millis() - timeStamp;
-  // Serial.println("Print time: " + String(timeStamp));
-
   delay(200);
   display.clearDisplay();
   display.display();
 
   initUxStates();
-  Serial.println("UX Init");
-
-
-  // Serial.println("BufferTest");
-  // RingbufferData tempData;
-  // unsigned long int timeAVG = 0;
-  // unsigned long int timeStamp = 0;
-  // for (int i = 0; i < 15; i++) {
-  //   tempData.sensorVal = (float)i;
-  //   tempData.timeMS = millis();
-  //   data.add(tempData);
-  //   Serial.print("LoopVal: ");
-  //   Serial.print((float)i);
-  //   Serial.print(", bufferVal: ");
-  //   Serial.println(data.get().sensorVal);
-
-  //   // data.add(tempData);
-  //   // delay(100);
-  //   // Serial.print("LoopVal: ");
-  //   // Serial.print((float)i);
-  //   // Serial.print(", bufferVal: ");
-  //   // Serial.println(data.get().sensorVal);
-  // }
-
-  // Serial.println("Final Buffer");
-  // for (int i = 0; i < 10; i++) {
-  //   Serial.print("LoopVal: ");
-  //   Serial.print(i);
-  //   Serial.print(", bufferVal: ");
-  //   Serial.println(data.get(i).sensorVal);
-  // }
 }
 
 
 void loop() {
   mainUX.uxLoop();
   buttons.buttonLoop();
+  // displayLoopTime();
+
 
   RingbufferData lol = grinder.getData();
   data.add(lol);
 
   //display refresh
   static unsigned long timestamp = millis();
-  if (millis() - timestamp > 100) {
+  if (millis() - timestamp > 10) {
     display.display();
+    display.clearDisplay();
     timestamp = millis();
   }
+}
+
+
+
+void displayLoopTime() {
+  display.setCursor(0, 0);
+  display.setTextSize(1);
+  display.fillRect(0, 0, 32, 8, 0x00);
+  display.print(uint8_t(data.get(0).timeMS - data.get(1).timeMS), DEC);
 }

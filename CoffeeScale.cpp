@@ -14,7 +14,6 @@ void CoffeeScale::grind(bool ON) {
   if (ON) {
     digitalWrite(_relaisPin, HIGH);
     _isGrinding = true;
-    Serial.println("-------------------- GRINDING");
   } else {
     digitalWrite(_relaisPin, LOW);
   }
@@ -24,11 +23,10 @@ bool CoffeeScale::isGrinding() {
   return _isGrinding;
 }
 
-float CoffeeScale::readScale() {
+void CoffeeScale::readScale() {
   float value = _loadcell.get_units();
   _readTime = millis();
   _currVal = value;
-  return value;
 }
 
 RingbufferData CoffeeScale::getData() {
@@ -104,18 +102,15 @@ void Ringbuffer::add(RingbufferData value) {
   _ringIndex++;
   _ringBuffer[_ringIndex] = value;
 
-  // Serial.println(_ringIndex);
-  // Serial.println(_ringBuffer[_ringIndex].sensorVal);
-  //index handling
-  // Serial.println("BufferInternal ---> val: " + String(value.sensorVal) + ", buffer: " + String(_ringBuffer[_ringIndex].sensorVal));
+  if (!isBufferFull && (_ringIndex >= _ringSize - 1)) isBufferFull = true;
 }
 
 RingbufferData Ringbuffer::get(int index) {
   index = convertIndex(index);
 
   if (index < 0) {
-    Serial.println("Adios");
-    while(true){}; //BÖSE! TODO
+    //TODO Böse
+    while (true){}
   }
   return _ringBuffer[index];
 }
@@ -126,7 +121,16 @@ float Ringbuffer::mean(int range) {
 }
 
 int Ringbuffer::getSize() {
-  return _ringSize;
+  if (isBufferFull) return _ringSize; 
+  else return _ringIndex + 1;
+}
+
+float Ringbuffer::getMax() {
+  float maxTemp = get(0).sensorVal;
+  for (int i = 1; i < getSize(); i++) {
+    if (get(i).sensorVal > maxTemp) { maxTemp = get(i).sensorVal; }
+  }
+  return maxTemp;
 }
 
 int Ringbuffer::convertIndex(unsigned int relIndex) {

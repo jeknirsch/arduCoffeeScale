@@ -8,7 +8,7 @@
 
 struct RingbufferData {
   float sensorVal;
-  unsigned long int timeMS;
+  unsigned long timeMS;
 };
 
 //class Prototypes
@@ -22,7 +22,7 @@ public:
   void begin(int relaisPin, int scaleSCK, int scaleDT);
   void grind(bool ON);
   bool isGrinding();
-  float readScale();
+  void readScale();
   RingbufferData getData();
   void tareZero();
   void calibrate(float calibrationWeight = 50.0);
@@ -33,7 +33,7 @@ private:
   bool readCalibration();
   EEPROMHandler *_eepromHandler;
   HX711 _loadcell;
-  unsigned long int _readTime;
+  unsigned long _readTime;
   float _currVal;
   int _relaisPin;
   bool _isGrinding = false;
@@ -52,10 +52,12 @@ public:
   RingbufferData get(int index = 0);
   float mean(int range);
   int getSize();
+  float getMax();
 private:
   RingbufferData _ringBuffer[RINGBUFFERSIZE];  //allocate space for array
   const int _ringSize = RINGBUFFERSIZE;        //save ringSize as readonly
-  int _ringIndex = -1;                         //inicating the next spot to write new data
+  int _ringIndex = -1;    
+  bool isBufferFull = false;                     //inicating the next spot to write new data
 
   int convertIndex(unsigned int relIndex);
 };

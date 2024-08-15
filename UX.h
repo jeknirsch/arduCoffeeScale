@@ -71,7 +71,7 @@ public:
 
 private:
   int _pin0, _pin1, _pin2, _pin3;
-  const unsigned long int _debounceTimeMS = 50;                //debounce time -> button signal refreshrate
+  const unsigned long int _debounceTimeMS = 75;  //debounce time -> button signal refreshrate
   int _buttonMode[BUTTON_NUMBER] = { 0 };        //
   bool _buttonState[BUTTON_NUMBER] = { false };  //true = button pressed, false = button not pressed
   bool _lastButtonState[BUTTON_NUMBER] = { false };
@@ -87,13 +87,13 @@ protected:
   void _getDisplayAnchor();
   void _applyAnchor();
   Adafruit_SSD1306 *_display;
-  int _x, _y, _w, _h;
-  int _elementAnchorX, _elementAnchorY, _targetAnchorX, _targetAnchorY;
+  uint16_t _x, _y, _w, _h;
+  uint16_t _elementAnchorX, _elementAnchorY, _targetAnchorX, _targetAnchorY;
 };
 
 class UI_Text : public UI_Element {
 public:
-  UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int targetAnchorY, int fontSize, Adafruit_SSD1306 *display);
+  UI_Text(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, int fontSize, Adafruit_SSD1306 *display);
   void setText(float val);
   void setText(char *text);
   void setSuffix(char *suffix);
@@ -107,13 +107,18 @@ private:
 
 class UI_Graph : public UI_Element {
 public:
-  UI_Graph(int elementAnchorX, int elementAnchorY, int targetAnchorX, int width, int height, Adafruit_SSD1306 *display);
-  void setGraphResolution(int dataPoints);  //number of dataPoints displayed on the graph -> max datapoints = max width (px)
-  void setDataBuffer(Ringbuffer *buffer);
+  UI_Graph(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, uint16_t width, uint16_t height, Adafruit_SSD1306 *display, Ringbuffer *ringbuffer);
+  void updateGraph();
+  void setTimeRange(int timeInS);
 private:
-  int _x, _y, _width, _height;
-  int _dataPoints = _width;  //default = width
-  Ringbuffer *_dataBuffer = nullptr;
+  int _getPixelUnitX(float unitX);
+  int _getPixelUnitY(float unitY);
+  float _minX = -5.0;
+  float _maxX = 0.0;
+  float _minY = 0.0;
+  float _maxY = 18.0;
+  int _timeRange = 5;  //default timerange in s
+  Ringbuffer *_ringBuffer = nullptr;
 };
 
 

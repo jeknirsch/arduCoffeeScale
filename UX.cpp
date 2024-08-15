@@ -157,24 +157,35 @@ UI_Element::UI_Element(Adafruit_SSD1306 *display)
 void UI_Element::_getDisplayAnchor() {
   uint16_t cw = _display->width() / 2;
   uint16_t ch = _display->height() / 2;
-
-  //Tofu pointer check
   _x = cw + cw * (_targetAnchorX);
   _y = ch + ch * (_targetAnchorY);
+
+  // uint16_t cw = 128 / 2;
+  // uint16_t ch = 32 / 2;
+
+  // _x = 128;
+  // _y = 32;
 }
 
 void UI_Element::_applyAnchor() {
   _getDisplayAnchor();
-  
+
   uint16_t cw = _w / 2;
   uint16_t ch = _h / 2;
 
   _x = _x - cw * (_elementAnchorX + 1);
   _y = _y - ch * (_elementAnchorY + 1);
+
+
+  // uint16_t cw = 30;
+  // uint16_t ch = 10;
+
+  // _x = 128 - 2 * cw;
+  // _y = 32 - 2 * ch;
 }
 
 
-UI_Text::UI_Text(int elementAnchorX, int elementAnchorY, int targetAnchorX, int targetAnchorY, int fontSize, Adafruit_SSD1306 *display)
+UI_Text::UI_Text(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, int fontSize, Adafruit_SSD1306 *display)
   : _fontSize(fontSize), UI_Element(display) {
   _elementAnchorX = elementAnchorX;
   _elementAnchorY = elementAnchorY;
@@ -219,14 +230,58 @@ void UI_Text::setPrefix(char *prefix) {
 
 
 
-UI_Graph::UI_Graph(int elementAnchorX, int elementAnchorY, int targetAnchorX, int width, int height, Adafruit_SSD1306 *display)
-  : UI_Element(display) {
+UI_Graph::UI_Graph(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, uint16_t width, uint16_t height, Adafruit_SSD1306 *display, Ringbuffer *ringBuffer)
+  : UI_Element(display), _ringBuffer(ringBuffer) {
+  _w = width;
+  _h = height;
+  _elementAnchorX = elementAnchorX;
+  _elementAnchorY = elementAnchorY;
+  _targetAnchorX = targetAnchorX;
+  _targetAnchorY = targetAnchorY;
 }
 
-void UI_Graph::setGraphResolution(int dataPoints) {
-  _dataPoints = dataPoints;
+void UI_Graph::updateGraph() {
+  _applyAnchor();
+  int i = 0;
+  _x = _x + _w;
+  _y = _y + _h;
+  float xStep = 0;
+  float xStepCum = 0;
+  int yTemp = 0;
+  int lastX, lastY;
+  // // _display->drawPixel(_x, _y, WHITE);
+
+
+
+  while ((xStepCum >= _minX ) && (i < _ringBuffer->getSize())) {
+    yTemp = _y - _getPixelUnitY(_ringBuffer->get(i).sensorVal);
+
+    if (i > 0) {
+      // xStep = (float)((_ringBuffer->get(i).timeMS - _ringBuffer->get(i - 1).timeMS)/1000);
+      xStep = 0.09;
+
+      // _x = _x - _getPixelUnitX(xStep);
+      _x = _x - 6;
+
+      _display->drawLine(lastX, lastY, _x, yTemp, WHITE);
+      // Serial.print("LastX: "); Serial.print(lastX); Serial.print("lastY"); Serial.println(lastY);
+    }
+
+    lastX = _x;
+    lastY = yTemp;
+
+    xStepCum -= xStep;
+    i++;
+  }
 }
 
-void UI_Graph::setDataBuffer(Ringbuffer *buffer) {
-  _dataBuffer = buffer;
+int UI_Graph::_getPixelUnitX(float unitX) {
+  return int(((unitX) / (_maxX - _minX)) * (float)_w);
+  // return int(((unitX) / (5)) * (float)60.0);
+
+}
+
+int UI_Graph::_getPixelUnitY(float unitY) {
+  return int(((unitY) / (_maxY - _minY)) * (float)_h);
+  // return int(((unitY) / (18)) * (float)20.0);
 }
