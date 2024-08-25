@@ -4,7 +4,8 @@
 #include <HX711.h>
 #include <EEPROM.h>
 
-#define RINGBUFFERSIZE 10
+#define RINGBUFFERSIZE 100
+#define EEPROMSIZE 512
 
 struct RingbufferData {
   float sensorVal;
@@ -67,8 +68,8 @@ private:
 
 
 class EEPROMHandler {
-  //TOFU
 public:
+  EEPROMHandler();
   void addFloat(String varName, float value);
   float readFloat(String varName);
   int calculateHashAdress(String varName);

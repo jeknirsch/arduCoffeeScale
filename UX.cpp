@@ -1,3 +1,4 @@
+#include "esp32-hal-gpio.h"
 #include "UX.h"
 #include <Arduino.h>
 #define HOLD_MIN 700
@@ -49,15 +50,14 @@ ButtonManager::ButtonManager(int pin0, int pin1, int pin2, int pin3)
 
 void ButtonManager::begin() {
   //assign pinmodes for buttons
-  pinMode(_pin0, INPUT);
-  pinMode(_pin1, INPUT);
-  pinMode(_pin2, INPUT);
-  pinMode(_pin3, INPUT);
+  pinMode(_pin0, INPUT_PULLDOWN);
+  pinMode(_pin1, INPUT_PULLDOWN);
+  pinMode(_pin2, INPUT_PULLDOWN);
+  pinMode(_pin3, INPUT_PULLDOWN);
 }
 
 void ButtonManager::buttonLoop() {
   static unsigned long int timeStamp = millis();
-
 
   //read new buttonstates
   if (millis() - timeStamp > _debounceTimeMS) {
@@ -159,12 +159,6 @@ void UI_Element::_getDisplayAnchor() {
   uint16_t ch = _display->height() / 2;
   _x = cw + cw * (_targetAnchorX);
   _y = ch + ch * (_targetAnchorY);
-
-  // uint16_t cw = 128 / 2;
-  // uint16_t ch = 32 / 2;
-
-  // _x = 128;
-  // _y = 32;
 }
 
 void UI_Element::_applyAnchor() {
@@ -175,18 +169,11 @@ void UI_Element::_applyAnchor() {
 
   _x = _x - cw * (_elementAnchorX + 1);
   _y = _y - ch * (_elementAnchorY + 1);
-
-
-  // uint16_t cw = 30;
-  // uint16_t ch = 10;
-
-  // _x = 128 - 2 * cw;
-  // _y = 32 - 2 * ch;
 }
 
 
 UI_Text::UI_Text(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, int fontSize, Adafruit_SSD1306 *display)
-  : _fontSize(fontSize), UI_Element(display) {
+  : UI_Element(display), _fontSize(fontSize) {
   _elementAnchorX = elementAnchorX;
   _elementAnchorY = elementAnchorY;
   _targetAnchorX = targetAnchorX;
@@ -201,30 +188,29 @@ void UI_Text::setText(float val) {
   setText(txt);
 }
 
-void UI_Text::setText(char *text) {
+void UI_Text::setText(String text) {
   _text = text;
-  char finalText[16];
-  strcpy(finalText, _prefix);
-  strcat(finalText, _text);
-  strcat(finalText, _suffix);
-
+  String finalText = _prefix + _text + _suffix;
 
   int16_t x1 = 0;
   int16_t y1 = 0;
   _w = 0;
   _h = 0;
+  _x = 0;
+  _y = 0;
   _display->setTextSize(_fontSize);
-  _display->getTextBounds(finalText, (int16_t)&_x, (int16_t)&_y, &x1, &y1, (uint16_t *)&_w, (uint16_t *)&_h);
+  _display->getTextBounds(finalText, _x, _y, &x1, &y1, &_w, &_h);
   _applyAnchor();
   _display->setCursor(_x, _y);
   _display->println(finalText);
+  // Serial.print("after x: "); Serial.println(_x);
 }
 
-void UI_Text::setSuffix(char *suffix) {
+void UI_Text::setSuffix(String suffix) {
   _suffix = suffix;
 }
 
-void UI_Text::setPrefix(char *prefix) {
+void UI_Text::setPrefix(String prefix) {
   _prefix = prefix;
 }
 
@@ -244,6 +230,7 @@ void UI_Graph::updateGraph() {
   _applyAnchor();
   int i = 0;
   _x = _x + _w;
+  // _x = 0 + _w;
   _y = _y + _h;
   float xStep = 0;
   float xStepCum = 0;
@@ -253,15 +240,21 @@ void UI_Graph::updateGraph() {
 
 
 
-  while ((xStepCum >= _minX ) && (i < _ringBuffer->getSize())) {
+  while ((xStepCum >= _minX) && (i < _ringBuffer->getSize())) {
+    // while (i < _ringBuffer->getSize()) {
     yTemp = _y - _getPixelUnitY(_ringBuffer->get(i).sensorVal);
 
     if (i > 0) {
-      // xStep = (float)((_ringBuffer->get(i).timeMS - _ringBuffer->get(i - 1).timeMS)/1000);
-      xStep = 0.09;
+      xStep = -(float)((_ringBuffer->get(i - 1).timeMS - _ringBuffer->get(i).timeMS) / 1000.0);
+      // Serial.print("xStep: ");
+      // Serial.println(xStep);
+      // Serial.print("diff: "); Serial.print(_ringBuffer->get(i).timeMS); Serial.print(" -> "); Serial.println(_ringBuffer->get(i- 1).timeMS);
 
-      // _x = _x - _getPixelUnitX(xStep);
-      _x = _x - 6;
+
+      // _x = _x + _getPixelUnitX(xStep);
+      _x += _getPixelUnitX(xStepCum);
+      // _x = _x - 6;
+      // Serial.print("x: "); Serial.print(_x); Serial.print(", y: "); Serial.println(yTemp);
 
       _display->drawLine(lastX, lastY, _x, yTemp, WHITE);
       // Serial.print("LastX: "); Serial.print(lastX); Serial.print("lastY"); Serial.println(lastY);
@@ -270,15 +263,16 @@ void UI_Graph::updateGraph() {
     lastX = _x;
     lastY = yTemp;
 
-    xStepCum -= xStep;
+    xStepCum += xStep;
     i++;
   }
+  Serial.print("cum: ");
+  Serial.println(xStepCum);
 }
 
 int UI_Graph::_getPixelUnitX(float unitX) {
   return int(((unitX) / (_maxX - _minX)) * (float)_w);
   // return int(((unitX) / (5)) * (float)60.0);
-
 }
 
 int UI_Graph::_getPixelUnitY(float unitY) {

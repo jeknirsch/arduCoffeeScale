@@ -87,7 +87,8 @@ protected:
   void _getDisplayAnchor();
   void _applyAnchor();
   Adafruit_SSD1306 *_display;
-  uint16_t _x, _y, _w, _h;
+  int16_t _x, _y;
+  uint16_t _w, _h;
   uint16_t _elementAnchorX, _elementAnchorY, _targetAnchorX, _targetAnchorY;
 };
 
@@ -95,14 +96,14 @@ class UI_Text : public UI_Element {
 public:
   UI_Text(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t targetAnchorX, uint16_t targetAnchorY, int fontSize, Adafruit_SSD1306 *display);
   void setText(float val);
-  void setText(char *text);
-  void setSuffix(char *suffix);
-  void setPrefix(char *prefix);
+  void setText(String text);
+  void setSuffix(String suffix);
+  void setPrefix(String prefix);
 private:
   int _fontSize = 1;
-  char *_text;
-  char *_prefix;
-  char *_suffix;
+  String _text;
+  String _prefix;
+  String _suffix;
 };
 
 class UI_Graph : public UI_Element {
@@ -113,7 +114,7 @@ public:
 private:
   int _getPixelUnitX(float unitX);
   int _getPixelUnitY(float unitY);
-  float _minX = -5.0;
+  float _minX = -10.0;
   float _maxX = 0.0;
   float _minY = 0.0;
   float _maxY = 18.0;

@@ -4,6 +4,7 @@ void stateCalibrate();
 void stateFinishGrind();
 
 float targetWeight = 16.0;
+float calibrateWeight = 50.0;
 unsigned long int grindTimeStamp = 0;
 
 struct UI_Layout {
@@ -35,7 +36,7 @@ void stateMain() {
     stateMain_map[0] = { &stateManualGrind, { 0, 0, HOLD, 0 } };
     stateMain_map[1] = { &stateCalibrate, { 0, CLICK, 0, 0 } };
     stateMain_map[2] = { &stateAutoGrind, { 0, 0, CLICK, 0 } };
-    
+
     ui.mainNumber.setSuffix("g");
     ui.smallNumber.setPrefix("v");
     ui.smallNumber.setSuffix("");
@@ -58,7 +59,6 @@ void stateMain() {
   ui.smallNumber.setText(float(VERSION));
   ui.stateDisplay.setText("Ready");
   ui.target.setText(targetWeight);
-
 }
 
 void stateAutoGrind() {
@@ -155,17 +155,18 @@ void stateCalibrate() {
     stateMain_map[0] = { &stateCalibrateApply, { 0, 0, CLICK, 0 } };
     stateMain_map[1] = { mainUX.getHomeState(), { CLICK, CLICK, 0, CLICK } };
 
-    mainUX.setHomeState(&stateCalibrate);
+    ui.mainNumber.setSuffix("g");
+    ui.target.setPrefix("Set: ");
+    ui.target.setSuffix("g");
 
+    mainUX.setHomeState(&stateCalibrate);
     grinder.tareZero();
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
   //------------- init end -------------
-
-  display.setCursor(30, 5);
-  display.setTextSize(2);
-  display.println("Set 50g");
+  ui.target.setText(calibrateWeight);
+  ui.mainNumber.setText(data.get().sensorVal);
 }
 
 void stateCalibrateApply() {
@@ -181,16 +182,12 @@ void stateCalibrateApply() {
 
     timeStamp = millis();
     //calibrate 50g
-    grinder.calibrate(50);
+    grinder.calibrate(calibrateWeight);
   } else {
     buttons.applyButtonPress(&mainUX, stateMain_map, mapCombos);
   }
   //------------- init end -------------
   if (millis() - timeStamp >= timeout) mainUX.changeState(&stateMain);
-
-  display.setCursor(30, 5);
-  display.setTextSize(1);
-  display.println("Calibrated");
 }
 
 void initUxStates() {

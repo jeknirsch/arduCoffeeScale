@@ -1,17 +1,26 @@
 #define VERSION 0.0
 
-//pin defines
-#define RELAISPIN 9  //D1
-#define SCALE_SCK 7  //D7
-#define SCALE_DT 8   //D8
+// //pin defines Arduino Nano
+// #define RELAISPIN 9  //D1
+// #define SCALE_SCK 7  //D7
+// #define SCALE_DT 8   //D8
 
-// #define I2C_SCL 12  //D6
-// #define I2C_SDA 14  //D5
+// #define BUTTON4 2  //D2
+// #define BUTTON3 3  //D3
+// #define BUTTON2 4  //D4
+// #define BUTTON1 5  //D5
 
-#define BUTTON4 2  //D2
-#define BUTTON3 3  //D3
-#define BUTTON2 4  //D4
-#define BUTTON1 5  //D5
+//pin defines ESP32
+#define RELAISPIN 15
+#define SCALE_SCK 19
+#define SCALE_DT 18
+
+//Buttons left to right: 1-4
+#define BUTTON1 14
+#define BUTTON2 27
+#define BUTTON3 26
+#define BUTTON4 25
+
 
 //display specs
 #define SCREEN_WIDTH 128
@@ -38,6 +47,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Start");
   grinder.begin(RELAISPIN, SCALE_SCK, SCALE_DT);
+  buttons.begin();
   pinMode(RELAISPIN, OUTPUT);
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -66,6 +76,7 @@ void setup() {
 
 
 void loop() {
+
   mainUX.uxLoop();
   buttons.buttonLoop();
   // displayLoopTime();

@@ -7,6 +7,7 @@ void CoffeeScale::begin(int relaisPin, int scaleSCK, int scaleDT) {
   _loadcell.begin(scaleDT, scaleSCK);
   _eepromHandler = new EEPROMHandler();
 
+
   //EEPROM load offset and gain from eeprom if possible
   readCalibration();
 }
@@ -140,13 +141,20 @@ int Ringbuffer::convertIndex(unsigned int relIndex) {
 }
 
 //###################### EEPROM ######################
+EEPROMHandler::EEPROMHandler(){
+  Serial.println("Starting EEPROM");
+  EEPROM.begin(EEPROMSIZE);
+
+}
+
 void EEPROMHandler::addFloat(String varName, float value) {
   int adress = calculateHashAdress(varName);
   byte data[4];
   memcpy(data, &value, sizeof(float));
   for (int i = 0; i < sizeof(float); i++) {
-    EEPROM.update(adress + i, data[i]);
+    EEPROM.write(adress + i, data[i]); 
   }
+  EEPROM.commit(); 
 }
 
 float EEPROMHandler::readFloat(String varName) {
@@ -156,7 +164,7 @@ float EEPROMHandler::readFloat(String varName) {
 
   //read bytes from eeprom
   for (int i = 0; i < sizeof(float); i++) {
-    data[i] = EEPROM.read(adress + i);
+    data[i] = EEPROM.read(adress + i); 
   }
 
   memcpy(&floatValue, data, sizeof(float));
@@ -173,7 +181,7 @@ int EEPROMHandler::calculateHashAdress(String varName) {
     if (varName.length() - 1 == i) key += varName[i] * 4;  //try to avoid collision by spacing
     else key += varName[i];
   }
-  key = key % 1023;  //reduce to adress range
+  key = key % EEPROMSIZE; 
 
   return key;
 }
