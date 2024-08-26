@@ -229,13 +229,15 @@ UI_Graph::UI_Graph(uint16_t elementAnchorX, uint16_t elementAnchorY, uint16_t ta
 void UI_Graph::updateGraph() {
   _applyAnchor();
   int i = 0;
-  _x = _x + _w;
+  int x = 0;
   // _x = 0 + _w;
+  _x = _x + _w;
   _y = _y + _h;
   float xStep = 0;
   float xStepCum = 0;
   int yTemp = 0;
-  int lastX, lastY;
+  int lastX;
+  int lastY;
   // // _display->drawPixel(_x, _y, WHITE);
 
 
@@ -243,6 +245,7 @@ void UI_Graph::updateGraph() {
   while ((xStepCum >= _minX) && (i < _ringBuffer->getSize())) {
     // while (i < _ringBuffer->getSize()) {
     yTemp = _y - _getPixelUnitY(_ringBuffer->get(i).sensorVal);
+
 
     if (i > 0) {
       xStep = -(float)((_ringBuffer->get(i - 1).timeMS - _ringBuffer->get(i).timeMS) / 1000.0);
@@ -252,22 +255,20 @@ void UI_Graph::updateGraph() {
 
 
       // _x = _x + _getPixelUnitX(xStep);
-      _x += _getPixelUnitX(xStepCum);
+      x = _x + _getPixelUnitX(xStepCum);
       // _x = _x - 6;
       // Serial.print("x: "); Serial.print(_x); Serial.print(", y: "); Serial.println(yTemp);
 
-      _display->drawLine(lastX, lastY, _x, yTemp, WHITE);
+      if (i>1) _display->drawLine(lastX, lastY, x, yTemp, WHITE);
       // Serial.print("LastX: "); Serial.print(lastX); Serial.print("lastY"); Serial.println(lastY);
     }
 
-    lastX = _x;
+    lastX = x;
     lastY = yTemp;
 
     xStepCum += xStep;
     i++;
   }
-  Serial.print("cum: ");
-  Serial.println(xStepCum);
 }
 
 int UI_Graph::_getPixelUnitX(float unitX) {

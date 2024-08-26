@@ -114,11 +114,10 @@ public:
 private:
   int _getPixelUnitX(float unitX);
   int _getPixelUnitY(float unitY);
-  float _minX = -10.0;
+  float _minX = -30.0;
   float _maxX = 0.0;
   float _minY = 0.0;
   float _maxY = 18.0;
-  int _timeRange = 5;  //default timerange in s
   Ringbuffer *_ringBuffer = nullptr;
 };
 
